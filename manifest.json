@@ -1,0 +1,17 @@
+{
+  "name": "JK Essensial - Perfume Formula Planner",
+  "short_name": "JK Essensial",
+  "description": "Racik formula parfummu sendiri — referensi, AI advisor, dan kalkulator takaran. 100% offline, data tersimpan di perangkatmu.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FDF1EF",
+  "theme_color": "#C4677A",
+  "orientation": "portrait",
+  "lang": "id",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
