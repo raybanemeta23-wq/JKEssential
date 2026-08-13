@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>JK Essensial — Perfume Formula Planner</title>
+<meta name="description" content="Racik formula parfummu sendiri — referensi, AI advisor, dan kalkulator takaran. 100% offline.">
+<meta name="theme-color" content="#C4677A">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JK Essensial">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FDF1EF;
+    --paper-2:#FADEE1;
+    --card:#FFFBFA;
+    --ink:#4A2B33;
+    --plum:#C4677A;
+    --plum-2:#B23A55;
+    --gold:#CC9B5E;
+    --gold-2:#E8C48F;
+    --sage:#94A67F;
+    --rose:#EAA6AE;
+    --line: rgba(74,43,51,0.12);
+    --radius: 20px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  html, body{
+    background: var(--paper);
+    font-family:'Work Sans', sans-serif;
+    color: var(--ink);
+    height:100%;
+    overflow:hidden;
+  }
+  .wreath-badge{ position:relative; width:150px; height:150px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto; }
+  .wreath-badge.tone-paper{ background: var(--card); border:1px solid var(--line); }
+  .wreath-badge.tone-pink{ background: linear-gradient(160deg, var(--paper-2), var(--card)); border:1px solid var(--line); }
+  .wreath-svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .wreath-content{ position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; }
+  .mono-jk{ font-family:'Alex Brush', cursive; font-size:52px; color: var(--gold); line-height:.9; }
+  .mono-jk.sm{ font-size:38px; }
+  .word-essensial{ font-family:'Fraunces',serif; font-weight:700; font-size:14px; letter-spacing:.14em; color: var(--plum-2); margin-top:2px; }
+  .tagline-mini{ font-family:'Work Sans'; font-size:7px; letter-spacing:.13em; text-transform:uppercase; color: rgba(74,43,51,.55); margin-top:3px; }
+  .flower-accent{ position:absolute; z-index:3; }
+  .needle-accent{ position:absolute; z-index:3; }
+  .official-mark{ display:flex; justify-content:center; padding: 6px 0 2px; }
+  .wreath-badge.size-auth{ width:126px; height:126px; }
+  .mono-jk.size-auth{ font-size:42px; }
+  .word-essensial.size-auth{ font-size:11px; margin-top:2px; }
+  .tagline-mini.size-auth{ font-size:6px; }
+
+  /* account */
+  .acct-pill{ display:flex; align-items:center; gap:7px; cursor:pointer; padding:3px 12px 3px 3px; background:var(--paper-2); border:1px solid var(--line); border-radius:30px; }
+  .acct-pill .avatar-instance{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none; }
+  .acct-pill .name-instance{ font-size:11.5px; font-weight:600; color:var(--ink); white-space:nowrap; }
+  .avatar-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-bottom:20px; }
+  .avatar-opt{ width:100%; aspect-ratio:1; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:2.4px solid transparent; }
+  .avatar-opt.selected{ border-color: var(--plum); }
+
+  /* ============ APP SHELL (full-screen, bukan mockup) ============ */
+  .phone{
+    width: 100%; height: 100%; max-width: 560px; margin: 0 auto;
+    background: var(--card);
+    position:relative; overflow:hidden; display:flex; flex-direction:column;
+  }
+  .screens{ position:relative; flex:1; overflow:hidden; }
+  .screen{
+    position:absolute; inset:0; overflow-y:auto;
+    padding: calc(16px + env(safe-area-inset-top)) 20px calc(100px + env(safe-area-inset-bottom));
+    opacity:0; visibility:hidden; transform: translateY(6px); transition: opacity .22s ease, transform .22s ease;
+  }
+  .screen.active{ opacity:1; visibility:visible; transform:translateY(0); }
+  .screen::-webkit-scrollbar{ display:none; }
+
+  .eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color: var(--gold); }
+  h2.section{ font-family:'Fraunces', serif; font-weight:600; font-size:21px; margin: 2px 0 14px; letter-spacing:-0.01em; }
+  .muted{ color: rgba(74,43,51,0.6); font-size:13px; line-height:1.55;}
+
+  /* ============ AUTH SCREENS ============ */
+  .auth-screen{ padding-top: 0 !important; text-align:center; }
+  .auth-logo{ display:flex; flex-direction:column; align-items:center; gap:8px; margin: 22px 0 6px; }
+  .auth-logo .badge{
+    width:46px; height:46px; border-radius:50%;
+    background: linear-gradient(145deg, var(--rose), var(--plum));
+    border: 2px solid var(--gold-2);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-weight:600; color:#fff; font-size:15px;
+  }
+  .auth-logo .word{ font-family:'Fraunces', serif; font-style:italic; font-weight:600; font-size:16px; color: var(--plum-2); }
+
+  .auth-hero{
+    position:relative; height:172px; border-radius:24px; margin: 10px 0 20px;
+    background: radial-gradient(circle at 30% 20%, rgba(232,196,143,.55), transparent 55%),
+                radial-gradient(circle at 75% 80%, rgba(196,103,122,.35), transparent 55%),
+                var(--paper-2);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .auth-hero .blob{ position:absolute; border-radius:50%; opacity:.55; }
+  .auth-hero .blob.b1{ width:120px; height:120px; background: var(--rose); top:-30px; left:-30px; }
+  .auth-hero .blob.b2{ width:90px; height:90px; background: var(--gold-2); bottom:-24px; right:-20px; }
+  .auth-hero .sparkle{ position:absolute; color: var(--gold); font-size:12px; }
+  .auth-hero svg{ position:relative; z-index:2; width:92px; }
+
+  /* onboarding */
+  .onboard-slide{ text-align:center; padding-top:22px; }
+  .onboard-slide .ob-hero{ height:220px; display:flex; align-items:center; justify-content:center; margin-bottom:6px; }
+  .onboard-slide h1{ font-family:'Fraunces', serif; font-weight:600; font-size:22px; margin:0 0 10px; }
+  .onboard-slide p{ font-size:12.5px; color: rgba(74,43,51,.65); line-height:1.6; max-width:280px; margin:0 auto; }
+  .onboard-dots{ display:flex; justify-content:center; gap:6px; margin-top:18px; }
+  .onboard-dots i{ width:7px; height:7px; border-radius:50%; background: var(--line); }
+  .onboard-dots i.active{ background: var(--plum); width:18px; border-radius:4px; }
+
+  .auth-heading{ text-align:left; margin: 4px 0 20px; }
+  .auth-heading h1{ font-family:'Fraunces', serif; font-weight:600; font-size:23px; margin:0 0 6px; }
+  .auth-heading p{ font-size:12.5px; color: rgba(74,43,51,.6); margin:0; line-height:1.5;}
+
+  .field{ text-align:left; margin-bottom:14px; }
+  .field label{ font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color: var(--plum-2); display:block; margin-bottom:6px;}
+  .field input{
+    width:100%; padding: 13px 14px; border-radius:14px; border: 1.4px solid var(--line);
+    background: var(--paper); font-family:'Work Sans'; font-size:13.5px; color: var(--ink); outline:none;
+  }
+  .field input:focus{ border-color: var(--plum); background: var(--card); }
+  .field .hint{ font-size:10.5px; color: var(--plum-2); margin-top:5px; }
+
+  .link-fwd{ text-align:right; margin: -6px 0 18px; }
+  .link-fwd span{ font-size:11.5px; font-family:'IBM Plex Mono', monospace; color: var(--plum-2); cursor:pointer; }
+
+  .divider{ display:flex; align-items:center; gap:10px; margin: 20px 0; }
+  .divider .ln{ flex:1; height:1px; background: var(--line); }
+  .divider span{ font-size:10.5px; color: rgba(74,43,51,.5); font-family:'IBM Plex Mono', monospace; text-transform:uppercase; letter-spacing:.06em;}
+
+  .signup-row{ text-align:center; font-size:12.5px; color: rgba(74,43,51,.65); margin-top: 4px;}
+  .signup-row b{ color: var(--plum-2); cursor:pointer; font-weight:700; }
+
+  .back-row{ display:flex; align-items:center; gap:8px; padding-top:14px; cursor:pointer; text-align:left;}
+  .back-row svg{ width:16px; height:16px; }
+  .back-row span{ font-family:'IBM Plex Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;}
+
+  .otp-boxes{ display:flex; justify-content:space-between; gap:8px; margin: 18px 0 10px; }
+  .otp-boxes input{
+    width:42px; height:52px; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:18px; font-weight:600;
+    border-radius:12px; border: 1.4px solid var(--line); background: var(--paper); color: var(--ink); outline:none;
+  }
+  .otp-boxes input:focus{ border-color: var(--plum); background: var(--card); }
+  .otp-timer{ font-size:11.5px; color: rgba(74,43,51,.6); text-align:center; margin: 4px 0 22px; }
+  .otp-timer b{ color: var(--plum-2); cursor:pointer; }
+
+  .error-text{ font-size:11px; color:#A02E44; margin-top:5px; display:none; }
+  .error-text.show{ display:block; }
+
+  /* ============ HOME / SHARED APP UI ============ */
+  .brand-row{ display:flex; align-items:center; justify-content:space-between; padding-top:14px;}
+  .brand-lockup{ display:flex; align-items:center; gap:8px; }
+  .brand-lockup .badge{
+    width:28px; height:28px; border-radius:50%; background: var(--card);
+    border: 1.6px solid #C9A227; display:flex; align-items:center; justify-content:center;
+    font-family:'Alex Brush', cursive; color:#C9A227; font-size:15px;
+  }
+  .brand-lockup .word{ font-family:'Fraunces', serif; font-style:italic; font-weight:600; font-size:15px; color: var(--plum-2); }
+  .avatar{
+    width:34px; height:34px; border-radius:50%; background: var(--plum); color:var(--card);
+    display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-size:14px;
+  }
+  .greet{ margin: 18px 0 20px; }
+  .greet h1{ font-family:'Fraunces', serif; font-weight:600; font-size: 24px; line-height:1.25; margin:6px 0 6px; }
+
+  .quick-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin: 18px 0 26px;}
+  .quick-card{ background: var(--paper-2); border-radius: 16px; padding: 14px 10px; text-align:center; cursor:pointer; border: 1px solid var(--line); transition: transform .15s ease; }
+  .quick-card:hover{ transform: translateY(-2px); }
+  .quick-card .ic{ margin: 0 auto 8px; width:26px; height:26px; }
+  .quick-card span{ font-size:11.5px; font-weight:600; display:block; }
+
+  .h-scroll{ display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; margin: 0 -20px; padding-left:20px; padding-right:20px;}
+  .h-scroll::-webkit-scrollbar{display:none;}
+  .trend-card{ flex:none; width: 168px; background: var(--paper-2); border-radius: var(--radius); padding: 14px; border: 1px solid var(--line); cursor:pointer; }
+  .trend-card .name{ font-family:'Fraunces', serif; font-weight:600; font-size:14.5px; margin-top:8px;}
+  .trend-card .fam{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; color:var(--plum-2); text-transform:uppercase; letter-spacing:.06em;}
+
+  .pyr-mini{ display:flex; flex-direction:column; gap:3px; align-items:center; }
+  .pyr-mini .band{ height:8px; border-radius:3px; }
+  .pyr-mini .band.top{ width:36%; background: var(--gold-2);}
+  .pyr-mini .band.mid{ width:62%; background: var(--rose);}
+  .pyr-mini .band.base{ width:88%; background: var(--plum);}
+
+  .pyramid-full{ display:flex; flex-direction:column; align-items:center; gap:6px; background: var(--paper-2); border-radius: var(--radius); padding: 22px 16px 18px; border:1px solid var(--line); margin: 6px 0 18px; }
+  .pband{ border-radius: 10px; padding: 9px 14px; text-align:center; color: #fff; }
+  .pband .lab{ font-family:'IBM Plex Mono', monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase; opacity:.9;}
+  .pband .val{ font-family:'Fraunces', serif; font-weight:600; font-size:14px; margin-top:2px;}
+  .pband.top{ width:44%; background: var(--gold); }
+  .pband.mid{ width:70%; background: var(--rose); color: var(--ink); }
+  .pband.base{ width:96%; background: var(--plum); }
+
+  .row-between{ display:flex; align-items:baseline; justify-content:space-between; margin-top:26px;}
+  .link-sm{ font-size:11.5px; font-family:'IBM Plex Mono', monospace; color:var(--plum-2); cursor:pointer;}
+
+  .search-bar{ display:flex; align-items:center; gap:8px; background: var(--paper-2); border:1px solid var(--line); border-radius: 14px; padding: 10px 14px; margin: 14px 0 12px; }
+  .search-bar input{ border:none; background:transparent; outline:none; font-family:'Work Sans'; font-size:13px; width:100%; color:var(--ink); }
+  .chip-row{ display:flex; gap:8px; overflow-x:auto; margin: 0 -20px 16px; padding: 0 20px 4px;}
+  .chip-row::-webkit-scrollbar{display:none;}
+  .chip{ flex:none; font-family:'IBM Plex Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; padding: 7px 12px; border-radius: 20px; border:1px solid var(--line); background: var(--card); cursor:pointer; }
+  .chip.active{ background: var(--plum); color: #fff; border-color:var(--plum);}
+
+  .formula-card{ display:flex; gap:12px; align-items:center; background: var(--paper-2); border:1px solid var(--line); border-radius: 16px; padding: 12px; margin-bottom:10px; cursor:pointer; }
+  .formula-card .pyr-mini{ width:64px; flex:none; }
+  .formula-card .info .name{ font-family:'Fraunces', serif; font-weight:600; font-size:14.5px;}
+  .formula-card .info .fam{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; color:var(--plum-2); text-transform:uppercase; margin: 2px 0 6px;}
+  .formula-card .info .tags{ font-size:11px; color: rgba(74,43,51,.6);}
+  .sim-badge{ margin-left:auto; flex:none; font-family:'IBM Plex Mono', monospace; font-size:10px; font-weight:600; background: var(--sage); color:#fff; padding:4px 8px; border-radius:8px; }
+
+  .detail-title{ font-family:'Fraunces', serif; font-weight:700; font-size:22px; margin: 12px 0 2px; }
+  .detail-sub{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--plum-2); text-transform:uppercase; letter-spacing:.06em; margin-bottom:16px;}
+
+  .btn-primary{ display:block; width:100%; text-align:center; background: var(--plum); color: #fff; font-family:'Fraunces', serif; font-weight:600; font-size:14.5px; padding: 13px; border-radius: 14px; border:none; cursor:pointer; margin-top:8px; }
+  .btn-ghost{ display:block; width:100%; text-align:center; background: transparent; color: var(--plum-2); font-family:'Work Sans'; font-weight:600; font-size:13px; padding: 12px; border-radius: 14px; border:1.4px solid var(--plum); cursor:pointer; margin-top:10px; }
+
+  .progress{ display:flex; gap:5px; margin: 16px 0 22px;}
+  .progress i{ flex:1; height:4px; border-radius:3px; background: var(--line);}
+  .progress i.done{ background: var(--gold); }
+  .q-title{ font-family:'Fraunces', serif; font-weight:600; font-size:19px; line-height:1.35; margin-bottom:18px;}
+  .opt-grid{ display:flex; flex-direction:column; gap:9px; }
+  .opt{ padding: 13px 14px; border-radius: 14px; border:1.4px solid var(--line); background: var(--paper-2); font-size:13.5px; font-weight:500; cursor:pointer; }
+  .opt.selected{ border-color: var(--plum); background: var(--card); box-shadow: inset 0 0 0 1.4px var(--plum);}
+  .advisor-result-card{ background: var(--paper-2); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:12px; }
+  .advisor-result-card .name{ font-family:'Fraunces', serif; font-weight:600; font-size:15px; margin: 8px 0 4px;}
+  .advisor-result-card .why{ font-size:12px; color: rgba(74,43,51,.65); line-height:1.5; margin-bottom:10px;}
+
+  .tab-strip{ display:flex; gap:6px; background: var(--paper-2); padding:4px; border-radius:14px; margin: 14px 0 16px;}
+  .tab-btn{ flex:1; text-align:center; padding: 9px 0; border-radius:11px; cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; font-weight:600; color: rgba(74,43,51,.55); }
+  .tab-btn.active{ background: var(--card); color: var(--ink); box-shadow: 0 1px 4px rgba(74,43,51,.15);}
+  .tab-count{ font-family:'IBM Plex Mono', monospace; opacity:.7; }
+  .warn-banner{ background:#FCEAE6; border:1px solid #E3A6A0; border-radius:12px; padding:10px 12px; font-size:11.5px; color:#7A2E42; margin-bottom:12px; line-height:1.55; }
+  .note-card{ position:relative; }
+  .note-check{ position:absolute; top:7px; right:7px; width:16px; height:16px; border-radius:50%; background: var(--gold); display:flex; align-items:center; justify-content:center; }
+
+  /* settings & security */
+  .settings-menu{ background: var(--paper-2); border:1px solid var(--line); border-radius:16px; overflow:hidden; margin-bottom:16px; }
+  .settings-item{ display:flex; align-items:center; gap:12px; padding:14px; cursor:pointer; border-bottom:1px solid var(--line); }
+  .settings-item:last-child{ border-bottom:none; }
+  .si-icon{ width:34px; height:34px; border-radius:50%; background: var(--card); display:flex; align-items:center; justify-content:center; flex:none; }
+  .si-text{ flex:1; }
+  .si-title{ font-family:'Fraunces', serif; font-weight:600; font-size:13.5px; }
+  .si-sub{ font-size:10.5px; color: rgba(74,43,51,.55); margin-top:2px; }
+  .security-note{ display:flex; gap:9px; align-items:flex-start; background: #EEF1E7; border:1px solid #C9D4BC; border-radius:14px; padding:11px 12px; font-size:11px; color:#3E4A34; line-height:1.55; margin-bottom:16px; }
+
+  /* lock badge on cards */
+  .lock-badge{ position:absolute; top:10px; right:10px; width:24px; height:24px; border-radius:50%; background: rgba(74,43,51,.85); display:flex; align-items:center; justify-content:center; z-index:2; }
+  .formula-card, .trend-card{ position:relative; }
+  .free-badge{ font-family:'IBM Plex Mono', monospace; font-size:8.5px; letter-spacing:.05em; text-transform:uppercase; color: var(--sage); border:1px solid var(--sage); border-radius:8px; padding:2px 6px; display:inline-block; margin-top:3px; }
+
+  /* expansion pack */
+  .pack-card{ background: var(--paper-2); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:12px; }
+  .pack-card .top-row{ display:flex; align-items:center; justify-content:space-between; }
+  .pack-card .pname{ font-family:'Fraunces', serif; font-weight:600; font-size:14.5px; }
+  .pack-card .pdesc{ font-size:11.5px; color: rgba(74,43,51,.6); margin: 4px 0 10px; line-height:1.5; }
+  .pack-status{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; padding:4px 9px; border-radius:8px; }
+  .pack-status.locked{ background:#F3DCD8; color:#7A2E42; }
+  .pack-status.unlocked{ background: var(--sage); color:#fff; }
+
+  /* qris */
+  .qris-box{ display:flex; gap:14px; align-items:center; background: var(--paper-2); border:1px solid var(--line); border-radius:16px; padding:16px; margin: 16px 0; }
+  .qr-placeholder{ width:70px; height:70px; background:#fff; border:1.4px dashed var(--gold); border-radius:12px; display:flex; align-items:center; justify-content:center; flex:none; }
+  .qr-price{ font-family:'Fraunces', serif; font-weight:700; font-size:18px; color: var(--plum-2); }
+  .qr-sub{ font-size:10.8px; color: rgba(74,43,51,.6); margin-top:4px; line-height:1.5; }
+
+  /* aging & journal */
+  .aging-row{ display:flex; align-items:center; gap:8px; margin-top:6px; }
+  .aging-track{ flex:1; height:5px; background: var(--card); border-radius:4px; overflow:hidden; }
+  .aging-fill{ height:100%; background: linear-gradient(90deg, var(--gold), var(--sage)); border-radius:4px; }
+  .aging-label{ font-family:'IBM Plex Mono', monospace; font-size:9px; color: var(--plum-2); white-space:nowrap; }
+  .aging-card{ background: var(--paper-2); border:1px solid var(--line); border-radius:16px; padding:18px; margin:14px 0; text-align:center; }
+  .aging-card .big{ font-family:'Fraunces', serif; font-weight:700; font-size:21px; color: var(--plum-2); }
+  .aging-card .track-lg{ height:8px; background: var(--card); border-radius:6px; overflow:hidden; margin:10px 0 8px; }
+  .aging-card .track-lg .fill{ height:100%; background: linear-gradient(90deg, var(--gold), var(--sage)); border-radius:6px; }
+  .journal-box textarea{ width:100%; min-height:90px; border-radius:14px; border:1.4px solid var(--line); background:var(--paper); padding:12px; font-family:'Work Sans'; font-size:12.5px; color:var(--ink); resize:vertical; }
+
+  /* dosage calculator */
+  .dosage-row{ margin-bottom:10px; }
+  .dosage-row .dl{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; text-transform:uppercase; letter-spacing:.06em; color: var(--plum-2); display:block; margin-bottom:5px; }
+  .dose-pills{ display:flex; flex-wrap:wrap; gap:6px; }
+  .dose-pill{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; background: var(--card); border:1px solid var(--line); border-radius:8px; padding:5px 8px; }
+  .ref-tag{ display:flex; gap:8px; align-items:flex-start; background: var(--paper-2); border:1px solid var(--gold-2); border-radius:12px; padding:10px 12px; font-size:11.5px; color: var(--ink); line-height:1.5; margin: 10px 0; }
+  .ref-tag b{ color: var(--plum-2); }
+
+  /* dupe CTA banner on home */
+  .dupe-cta{ display:flex; align-items:center; gap:12px; background: linear-gradient(120deg, var(--paper-2), var(--card)); border:1.4px solid var(--gold-2); border-radius:18px; padding:14px; margin: 4px 0 26px; cursor:pointer; }
+  .dupe-cta .ic-wrap{ width:40px; height:40px; border-radius:50%; background: var(--card); display:flex; align-items:center; justify-content:center; flex:none; }
+  .dupe-cta .t{ font-family:'Fraunces', serif; font-weight:600; font-size:14px; }
+  .dupe-cta .s{ font-size:11px; color: rgba(74,43,51,.6); margin-top:2px; }
+  .note-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap:9px; margin-bottom:8px;}
+  .note-card{ padding: 12px 10px; border-radius:14px; border:1.4px solid var(--line); background: var(--paper-2); cursor:pointer; }
+  .note-card .n{ font-family:'Fraunces', serif; font-weight:600; font-size:13.5px;}
+  .note-card .f{ font-family:'IBM Plex Mono', monospace; font-size:9px; text-transform:uppercase; color: var(--plum-2); margin-top:2px;}
+  .note-card.selected{ border-color: var(--gold); background: var(--card); box-shadow: inset 0 0 0 1.4px var(--gold);}
+
+  .result-panel{ margin-top: 22px; padding-top:18px; border-top: 1.4px dashed var(--line); }
+  .score-row{ display:flex; align-items:center; gap:10px; margin: 14px 0 4px;}
+  .score-track{ flex:1; height:8px; background: var(--paper-2); border-radius:6px; overflow:hidden;}
+  .score-fill{ height:100%; background: linear-gradient(90deg, var(--sage), var(--gold)); border-radius:6px; transition: width .3s ease;}
+  .score-num{ font-family:'IBM Plex Mono', monospace; font-size:12px; font-weight:600;}
+  .stat-row{ display:flex; gap:8px; margin-top:12px;}
+  .stat-box{ flex:1; background: var(--paper-2); border-radius:12px; padding:10px; text-align:center; border:1px solid var(--line);}
+  .stat-box .v{ font-family:'Fraunces',serif; font-weight:600; font-size:14px;}
+  .stat-box .l{ font-family:'IBM Plex Mono', monospace; font-size:8.5px; text-transform:uppercase; color: var(--plum-2); margin-top:2px;}
+
+  .empty-state{ text-align:center; padding: 60px 20px; }
+  .empty-state .ic{ width:44px; height:44px; margin: 0 auto 14px; opacity:.5;}
+  .empty-state p{ font-size:13px; color: rgba(74,43,51,.6); line-height:1.5;}
+  .koleksi-card{ display:flex; gap:12px; align-items:center; background: var(--paper-2); border:1px solid var(--line); border-radius:16px; padding:12px; margin-bottom:10px; }
+  .koleksi-card .pyr-mini{ width:56px; flex:none;}
+  .koleksi-card .name{ font-family:'Fraunces', serif; font-weight:600; font-size:14px;}
+  .koleksi-card .meta{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; color: var(--plum-2); margin-top:2px;}
+
+  .tabbar{ flex:none; height: 76px; display:flex; align-items:center; justify-content:space-around; background: var(--card); border-top: 1px solid var(--line); padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+  .tabbar.hidden{ display:none; }
+  .tabbar .item{ display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color: rgba(74,43,51,.42); }
+  .tabbar .item.active{ color: var(--plum-2); }
+  .tabbar .item svg{ width:21px; height:21px; }
+  .tabbar .item span{ font-family:'IBM Plex Mono', monospace; font-size:9px; letter-spacing:.03em; }
+
+  .toast{ position:absolute; left:50%; bottom:96px; transform:translateX(-50%) translateY(10px); background: var(--ink); color: var(--paper); font-size:12px; font-family:'Work Sans'; padding: 10px 16px; border-radius: 12px; opacity:0; pointer-events:none; transition: all .25s ease; white-space:nowrap; z-index:20; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="screens">
+
+    <!-- ============ ONBOARDING ============ -->
+    <div class="screen active auth-screen" data-screen="onboard">
+      <div class="back-row" style="visibility:hidden;"><span>-</span></div>
+      <div id="onboard-body"></div>
+      <div class="onboard-dots" id="onboard-dots"></div>
+      <div style="display:flex; gap:10px; margin-top:18px;">
+        <button class="btn-ghost" style="margin-top:0; flex:1;" onclick="skipOnboard()">Lewati</button>
+        <button class="btn-primary" style="margin-top:0; flex:1;" id="onboard-next-btn" onclick="nextOnboard()">Lanjut</button>
+      </div>
+    </div>
+
+    <!-- ============ HOME ============ -->
+    <div class="screen" data-screen="home">
+      <div class="brand-row">
+        <div class="brand-lockup"><div class="badge">JK</div><div class="word">Essensial</div></div>
+        <div class="acct-pill" onclick="go('akun')">
+          <div class="avatar-instance"></div>
+          <span class="name-instance">Rani</span>
+        </div>
+      </div>
+      <div class="greet">
+        <span class="eyebrow">Selamat siang, Rani</span>
+        <h1>Mau racik aroma<br>seperti apa hari ini?</h1>
+      </div>
+
+      <div class="quick-grid">
+        <div class="quick-card" onclick="go('library')">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#C4677A" stroke-width="1.6"><path d="M4 4h11l5 5v11H4z"/><path d="M14 4v6h6"/></svg>
+          <span>Referensi</span>
+        </div>
+        <div class="quick-card" onclick="go('advisor')">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#C4677A" stroke-width="1.6"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>
+          <span>Advisor</span>
+        </div>
+        <div class="quick-card" onclick="go('builder')">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#C4677A" stroke-width="1.6"><path d="M9 3h6M10 3v5.2L5.5 17a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 8.2V3"/></svg>
+          <span>Builder</span>
+        </div>
+      </div>
+
+      <div class="dupe-cta" onclick="go('dupe-search')">
+        <div class="ic-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C4677A" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </div>
+        <div>
+          <div class="t">Cari &amp; Duplikasi Parfum</div>
+          <div class="s">Cari parfum brand ternama, lihat perkiraan struktur note &amp; takarannya</div>
+        </div>
+      </div>
+
+      <div class="row-between">
+        <h2 class="section" style="margin-top:0;">Racikan Populer</h2>
+        <span class="link-sm" onclick="go('library')">Lihat semua →</span>
+      </div>
+      <div class="h-scroll">
+        <div class="trend-card" onclick="handleFormulaClick('classic-citrus')">
+          <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+          <div class="name">Gaya Citrus Klasik</div>
+          <div class="fam">Fresh · Unisex</div>
+        </div>
+        <div class="trend-card" onclick="handleFormulaClick('warm-amber')">
+          <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+          <div class="name">Amber Hangat Malam</div>
+          <div class="fam">Oriental · Malam</div>
+        </div>
+        <div class="trend-card" onclick="handleFormulaClick('soft-floral')">
+          <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+          <div class="name">Floral Lembut Kerja</div>
+          <div class="fam">Floral · Harian</div>
+        </div>
+      </div>
+
+      <div class="row-between"><h2 class="section">Note Minggu Ini</h2></div>
+      <p class="muted">Vetiver — akar wangi beraroma tanah &amp; kayu kering, favorit sebagai base note musim hujan. Coba di Note Builder.</p>
+    </div>
+
+    <!-- ============ LIBRARY ============ -->
+    <div class="screen" data-screen="library">
+      <div class="brand-row" style="padding-top:14px;">
+        <h2 class="section" style="margin:0;">Reference Library</h2>
+        <div class="acct-pill" onclick="go('akun')"><div class="avatar-instance"></div><span class="name-instance">Rani</span></div>
+      </div>
+      <div class="search-bar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C4677A" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input placeholder="Cari gaya aroma, mis. woody..." />
+      </div>
+      <div class="chip-row">
+        <div class="chip active">Semua</div><div class="chip">Fresh</div><div class="chip">Floral</div><div class="chip">Woody</div><div class="chip">Oriental</div><div class="chip">Gourmand</div>
+      </div>
+
+      <div class="formula-card" onclick="handleFormulaClick('classic-citrus')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Gaya Citrus Klasik</div><div class="fam">Fresh · Unisex</div><div class="tags">Terinspirasi eau de cologne populer</div><span class="free-badge">Gratis</span></div>
+        <div class="sim-badge">88%</div>
+      </div>
+      <div class="formula-card" onclick="handleFormulaClick('warm-amber')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Amber Hangat Malam</div><div class="fam">Oriental · Malam</div><div class="tags">Gaya designer oriental best seller</div><span class="free-badge">Gratis</span></div>
+        <div class="sim-badge">91%</div>
+      </div>
+      <div class="formula-card" onclick="handleFormulaClick('soft-floral')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Floral Lembut Kerja</div><div class="fam">Floral · Harian</div><div class="tags">Ringan, aman untuk kantor</div><span class="free-badge">Gratis</span></div>
+        <div class="sim-badge">84%</div>
+      </div>
+      <div class="formula-card" onclick="handleFormulaClick('woody-no-sweet')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Kayu Tanpa Manis</div><div class="fam">Woody · Niche</div><div class="tags">Untuk yang hindari nuansa gourmand</div><span class="free-badge">Gratis</span></div>
+        <div class="sim-badge">79%</div>
+      </div>
+
+      <div class="formula-card" onclick="handleFormulaClick('wangian-1')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Wangian 1 — Bold Dinner Musky</div><div class="fam">Oriental Musky · Unisex</div><div class="tags">Resep komunitas · 30ml</div><span class="free-badge">Gratis</span></div>
+      </div>
+      <div class="formula-card" onclick="handleFormulaClick('wangian-2')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Wangian 2 — Arabian Sweet Musk</div><div class="fam">Arabian Musky · Feminin</div><div class="tags">Resep komunitas · 30ml</div><span class="free-badge">Gratis</span></div>
+      </div>
+      <div class="formula-card" onclick="handleFormulaClick('wangian-3')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Wangian 3 — Fresh After Shower</div><div class="fam">Fresh Aromatic · Anak &amp; Remaja</div><div class="tags">Resep komunitas · 30ml</div><span class="free-badge">Gratis</span></div>
+      </div>
+      <div class="formula-card" onclick="handleFormulaClick('wangian-4')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Wangian 4 — Ocean Bloom Leather</div><div class="fam">Marine Floral Leather · Maskulin</div><div class="tags">Resep komunitas · 30ml</div><span class="free-badge">Gratis</span></div>
+      </div>
+      <div class="formula-card" onclick="handleFormulaClick('wangian-5')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Wangian 5 — Sweet Teen Bloom</div><div class="fam">Gourmand Floral · Remaja</div><div class="tags">Resep komunitas · 30ml</div><span class="free-badge">Gratis</span></div>
+      </div>
+      <div class="formula-card" onclick="handleFormulaClick('wangian-6')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Wangian 6 — Breezy Energic</div><div class="fam">Fresh Woody · Energic</div><div class="tags">Resep komunitas · 30ml</div><span class="free-badge">Gratis</span></div>
+      </div>
+      <div class="formula-card" onclick="handleFormulaClick('wangian-7')">
+        <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+        <div class="info"><div class="name">Wangian 7 — Cafe Hopper Oud</div><div class="fam">Oriental Leather · Maskulin</div><div class="tags">Resep komunitas · 30ml</div><span class="free-badge">Gratis</span></div>
+      </div>
+    </div>
+
+    <!-- ============ DETAIL ============ -->
+    <div class="screen" data-screen="detail">
+      <div class="back-row" onclick="go('library')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4A2B33" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Reference Library</span>
+      </div>
+      <div class="detail-sub" id="detail-fam">Fresh · Unisex</div>
+      <div class="detail-title" id="detail-name">Gaya Citrus Klasik</div>
+
+      <div class="pyramid-full">
+        <div class="pband top"><div class="lab">Top Note</div><div class="val" id="d-top">Bergamot, Lemon</div></div>
+        <div class="pband mid"><div class="lab">Middle Note</div><div class="val" id="d-mid">Neroli, Geranium</div></div>
+        <div class="pband base"><div class="lab">Base Note</div><div class="val" id="d-base">Musk, Vetiver</div></div>
+      </div>
+
+      <p class="muted" id="d-desc">Segar dan bersih sejak semprotan pertama, dengan jantung floral-hijau ringan dan dasar musky yang lembut.</p>
+
+      <div class="ref-tag" id="d-ref">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#CC9B5E" stroke-width="1.8" style="flex:none;"><path d="M12 2l2.6 6.6L21 11l-6.4 2.4L12 20l-2.6-6.6L3 11l6.4-2.4Z"/></svg>
+        <span>Sekilas mengingatkan pada: <b id="d-ref-name">—</b>. Hanya sebagai bayangan aroma, bukan klaim identik dengan produk aslinya.</span>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-box"><div class="v" id="d-dur">6–8j</div><div class="l">Daya Tahan</div></div>
+        <div class="stat-box"><div class="v" id="d-proj">Sedang</div><div class="l">Proyeksi</div></div>
+        <div class="stat-box"><div class="v" id="d-season">Panas</div><div class="l">Musim</div></div>
+      </div>
+
+      <div class="result-panel" style="margin-top:20px;">
+        <span class="eyebrow">Kalkulator Takaran</span>
+        <div class="chip-row" id="detail-bottle-chips" style="margin:10px -20px 4px;padding:0 20px 4px;"></div>
+        <div class="chip-row" id="detail-conc-chips" style="margin:0 -20px 12px;padding:0 20px 4px;"></div>
+        <div id="detail-dosage"></div>
+      </div>
+
+      <button class="btn-primary" onclick="go('builder')">Gunakan sebagai Dasar Racikan</button>
+      <button class="btn-ghost" onclick="saveToKoleksi('detail')">Simpan ke Koleksi</button>
+      <button class="btn-ghost" onclick="shareFormula(document.getElementById('detail-name').textContent, document.getElementById('detail-fam').textContent, document.getElementById('d-top').textContent, document.getElementById('d-mid').textContent, document.getElementById('d-base').textContent)">Bagikan Formula</button>
+    </div>
+
+    <!-- ============ CARI & DUPLIKASI ============ -->
+    <div class="screen" data-screen="dupe-search">
+      <div class="brand-row" style="padding-top:14px;">
+        <h2 class="section" style="margin:0;">Cari &amp; Duplikasi</h2>
+        <div class="acct-pill" onclick="go('akun')"><div class="avatar-instance"></div><span class="name-instance">Rani</span></div>
+      </div>
+      <p class="muted" style="margin-bottom:12px;">Cari parfum brand ternama untuk melihat perkiraan struktur note &amp; takarannya.</p>
+      <div class="search-bar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C4677A" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="dupe-search-input" placeholder="Cari nama parfum, mis. Sauvage..." oninput="filterDupeList()" />
+      </div>
+      <div class="chip-row" id="dupe-cat-chips" style="margin:0 -20px 12px;padding:0 20px 4px;"></div>
+      <div class="warn-banner" style="margin-top:2px;">⚠️ Semua hasil di sini adalah <b>pendekatan/interpretasi</b> berdasarkan catatan aroma yang dipublikasikan secara umum — bukan formula rahasia asli dari brand tersebut. Perkiraan menyerupai sekitar <b>80–90%</b> dari produk aslinya, tergantung bahan baku &amp; teknik pencampuran.</div>
+      <div id="dupe-list"></div>
+      <div id="dupe-result" style="display:none;"></div>
+    </div>
+
+    <!-- ============ ADVISOR ============ -->
+    <div class="screen" data-screen="advisor">
+      <div class="brand-row" style="padding-top:14px;">
+        <h2 class="section" style="margin:0;">Fragrance Advisor</h2>
+        <div class="acct-pill" onclick="go('akun')"><div class="avatar-instance"></div><span class="name-instance">Rani</span></div>
+      </div>
+      <div class="progress" id="adv-progress"></div>
+      <div id="adv-body"></div>
+    </div>
+
+    <!-- ============ BUILDER ============ -->
+    <div class="screen" data-screen="builder">
+      <div class="brand-row" style="padding-top:14px;">
+        <h2 class="section" style="margin:0;">Note Pyramid Builder</h2>
+        <div class="acct-pill" onclick="go('akun')"><div class="avatar-instance"></div><span class="name-instance">Rani</span></div>
+      </div>
+      <p class="muted" style="margin-bottom:14px;">Pilih lebih dari satu note di tiap lapisan (disarankan maks. 4 per lapisan).</p>
+      <div class="tab-strip">
+        <div class="tab-btn active" data-layer="top" onclick="switchLayer('top')">Top <span id="count-top" class="tab-count"></span></div>
+        <div class="tab-btn" data-layer="mid" onclick="switchLayer('mid')">Middle <span id="count-mid" class="tab-count"></span></div>
+        <div class="tab-btn" data-layer="base" onclick="switchLayer('base')">Base <span id="count-base" class="tab-count"></span></div>
+      </div>
+      <div class="chip-row" id="family-chip-row" style="margin-bottom:12px;"></div>
+      <div class="warn-banner" id="layer-warning" style="display:none;"></div>
+      <div class="note-grid" id="note-grid"></div>
+
+      <div class="result-panel">
+        <span class="eyebrow">Hasil Racikan</span>
+        <div class="pyramid-full" style="margin-top:10px;">
+          <div class="pband top"><div class="lab">Top</div><div class="val" id="r-top">—</div></div>
+          <div class="pband mid"><div class="lab">Middle</div><div class="val" id="r-mid">—</div></div>
+          <div class="pband base"><div class="lab">Base</div><div class="val" id="r-base">—</div></div>
+        </div>
+        <p class="muted" id="r-desc">Pilih note di ketiga lapisan untuk melihat karakter racikanmu.</p>
+        <div class="ref-tag" id="r-ref" style="display:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#CC9B5E" stroke-width="1.8" style="flex:none;"><path d="M12 2l2.6 6.6L21 11l-6.4 2.4L12 20l-2.6-6.6L3 11l6.4-2.4Z"/></svg>
+          <span>Sekilas mengingatkan pada: <b id="r-ref-name">—</b>. Hanya sebagai bayangan aroma, bukan klaim identik dengan produk aslinya.</span>
+        </div>
+        <div class="warn-banner" id="result-warning" style="display:none;"></div>
+        <div class="score-row">
+          <span class="eyebrow" style="white-space:nowrap;">Harmoni</span>
+          <div class="score-track"><div class="score-fill" id="score-fill" style="width:0%;"></div></div>
+          <span class="score-num" id="score-num">0%</span>
+        </div>
+        <div class="stat-row">
+          <div class="stat-box"><div class="v" id="r-dur">—</div><div class="l">Daya Tahan</div></div>
+          <div class="stat-box"><div class="v" id="r-proj">—</div><div class="l">Proyeksi</div></div>
+          <div class="stat-box"><div class="v" id="r-season">—</div><div class="l">Musim</div></div>
+        </div>
+
+        <span class="eyebrow" style="display:block; margin-top:18px;">Kalkulator Takaran</span>
+        <div class="chip-row" id="builder-bottle-chips" style="margin:10px -20px 4px;padding:0 20px 4px;"></div>
+        <div class="chip-row" id="builder-conc-chips" style="margin:0 -20px 12px;padding:0 20px 4px;"></div>
+        <div id="dosage-breakdown"></div>
+
+        <button class="btn-primary" onclick="saveToKoleksi('builder')">Simpan ke Koleksi</button>
+        <button class="btn-ghost" onclick="shareFormula('Racikan Kustomku', 'Buatan Sendiri', selected.top.join(', ')||'—', selected.mid.join(', ')||'—', selected.base.join(', ')||'—')">Bagikan Formula</button>
+      </div>
+    </div>
+
+    <!-- ============ AKUN ============ -->
+    <div class="screen" data-screen="akun">
+      <div class="back-row" onclick="go('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4A2B33" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Kembali</span>
+      </div>
+      <div style="text-align:center; margin-top:18px;">
+        <div class="avatar-instance" style="width:84px;height:84px;margin:0 auto 12px;border:3px solid var(--gold-2);"></div>
+        <span class="eyebrow">Akun Saya</span>
+      </div>
+
+      <div class="field" style="margin-top:20px;">
+        <label>Nama Tampilan</label>
+        <input id="akun-name" type="text" value="Rani" />
+      </div>
+
+      <span class="eyebrow" style="display:block; margin:18px 0 10px;">Pilih Avatar</span>
+      <div class="avatar-grid" id="avatar-grid"></div>
+
+      <button class="btn-primary" onclick="saveProfile()">Simpan Perubahan</button>
+
+      <span class="eyebrow" style="display:block; margin:22px 0 10px;">Pengaturan Lanjutan</span>
+      <div class="settings-menu">
+        <div class="settings-item" onclick="go('apikey')">
+          <div class="si-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C4677A" stroke-width="1.8"><circle cx="8" cy="15" r="4"/><path d="M10.5 12.5 20 3M16 7l3 3M19 4l1 1"/></svg>
+          </div>
+          <div class="si-text">
+            <div class="si-title">API Key AI (BYOK)</div>
+            <div class="si-sub" id="apikey-status">Belum diatur</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B98CA0" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+        <div class="settings-item" onclick="go('expansion')">
+          <div class="si-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C4677A" stroke-width="1.8"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 8l9-5 9 5M8 13h8"/></svg>
+          </div>
+          <div class="si-text">
+            <div class="si-title">Expansion Pack</div>
+            <div class="si-sub" id="expansion-status">4 dari 4 paket terbuka</div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B98CA0" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+      </div>
+
+      <div class="security-note">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5F6F52" stroke-width="1.8" style="flex:none;"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <span>Semua racikan &amp; jurnalmu disimpan <b>lokal di perangkat ini</b> — tidak diunggah ke server manapun. Aplikasi tidak punya database pusat.</span>
+      </div>
+    </div>
+
+    <!-- ============ API KEY (BYOK) ============ -->
+    <div class="screen" data-screen="apikey">
+      <div class="back-row" onclick="go('akun')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4A2B33" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Kembali</span>
+      </div>
+      <div style="margin-top:14px;">
+        <span class="eyebrow">Asisten AI Peracik</span>
+        <h2 class="section" style="margin-top:4px;">API Key AI (BYOK)</h2>
+        <p class="muted">Bring Your Own Key — masukkan API key milikmu sendiri (gratis dari Google AI Studio untuk Gemini). Prompt racikan dikirim langsung dari HP-mu ke penyedia AI, tanpa melewati server kami.</p>
+      </div>
+
+      <div class="chip-row" style="margin:16px -20px 14px; padding:0 20px 4px;">
+        <div class="chip active" id="provider-gemini" onclick="setProvider('Gemini')">Gemini</div>
+        <div class="chip" id="provider-openai" onclick="setProvider('OpenAI')">OpenAI</div>
+      </div>
+
+      <div class="field">
+        <label>API Key</label>
+        <div style="position:relative;">
+          <input id="apikey-input" type="password" placeholder="Tempel API key di sini" style="padding-right:56px;" />
+          <span onclick="toggleKeyVisibility()" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--plum-2); cursor:pointer;" id="toggle-key-label">Lihat</span>
+        </div>
+      </div>
+
+      <div class="security-note">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5F6F52" stroke-width="1.8" style="flex:none;"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <span>API key disimpan terenkripsi di penyimpanan aman perangkat (Android Keystore / iOS Keychain) — bukan di teks biasa, dan tidak pernah kami lihat atau simpan di server manapun.</span>
+      </div>
+
+      <button class="btn-primary" onclick="saveApiKey()">Simpan API Key</button>
+      <button class="btn-ghost" onclick="showToast('Fitur AI dimatikan')">Nonaktifkan Asisten AI</button>
+    </div>
+
+    <!-- ============ EXPANSION PACK ============ -->
+    <div class="screen" data-screen="expansion">
+      <div class="back-row" onclick="go('akun')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4A2B33" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Kembali</span>
+      </div>
+      <div style="margin-top:14px;">
+        <span class="eyebrow">Konten Premium</span>
+        <h2 class="section" style="margin-top:4px;">Expansion Pack</h2>
+        <p class="muted">Buka koleksi formula tambahan. Pembayaran manual via QRIS/transfer — tanpa potongan toko aplikasi.</p>
+      </div>
+      <div id="pack-list"></div>
+    </div>
+
+    <!-- ============ UNLOCK PACK ============ -->
+    <div class="screen" data-screen="unlock">
+      <div class="back-row" onclick="go('expansion')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4A2B33" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Kembali</span>
+      </div>
+      <div style="margin-top:14px;">
+        <span class="eyebrow" id="unlock-eyebrow">Expansion Pack</span>
+        <h2 class="section" style="margin-top:4px;" id="unlock-title">Nama Paket</h2>
+      </div>
+
+      <div class="qris-box">
+        <div class="qr-placeholder">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#4A2B33" stroke-width="1.3"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z"/></svg>
+        </div>
+        <div class="qr-info">
+          <div class="qr-price" id="unlock-price">Rp 25.000</div>
+          <div class="qr-sub">Scan QRIS atau transfer ke rekening pribadi pemilik aplikasi, lalu konfirmasi via WhatsApp.</div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="confirmWhatsApp()">Konfirmasi Pembayaran via WhatsApp</button>
+
+      <div class="field" style="margin-top:22px;">
+        <label>Kode PIN Unlock (8 digit)</label>
+        <input id="pin-input" type="text" maxlength="8" inputmode="numeric" placeholder="Masukkan kode dari admin" />
+      </div>
+      <p class="muted" style="font-size:10.5px;">Kode PIN dikirim admin lewat WhatsApp setelah pembayaran diverifikasi. Coba <b style="color:var(--plum-2);">12345678</b> untuk simulasi.</p>
+
+      <button class="btn-primary" onclick="activatePin()">Aktifkan Kode PIN</button>
+    </div>
+
+    <!-- ============ KOLEKSI ============ -->
+    <div class="screen" data-screen="koleksi">
+      <div class="brand-row" style="padding-top:14px;">
+        <h2 class="section" style="margin:0;">Koleksi Saya</h2>
+        <div class="acct-pill" onclick="go('akun')"><div class="avatar-instance"></div><span class="name-instance">Rani</span></div>
+      </div>
+      <div id="koleksi-list"></div>
+    </div>
+
+    <!-- ============ KOLEKSI DETAIL (JURNAL & AGING) ============ -->
+    <div class="screen" data-screen="koleksi-detail">
+      <div class="back-row" onclick="go('koleksi')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4A2B33" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Koleksi Saya</span>
+      </div>
+      <div class="detail-sub" id="kd-fam">—</div>
+      <div class="detail-title" id="kd-name">—</div>
+
+      <div class="pyramid-full">
+        <div class="pband top"><div class="lab">Top</div><div class="val" id="kd-top">—</div></div>
+        <div class="pband mid"><div class="lab">Middle</div><div class="val" id="kd-mid">—</div></div>
+        <div class="pband base"><div class="lab">Base</div><div class="val" id="kd-base">—</div></div>
+      </div>
+
+      <span class="eyebrow" style="display:block; margin-top:6px;">Status Pemeraman (Aging)</span>
+      <div class="aging-card">
+        <div class="big" id="kd-aging-label">—</div>
+        <div class="track-lg"><div class="fill" id="kd-aging-fill" style="width:0%;"></div></div>
+        <p class="muted" id="kd-aging-sub" style="font-size:10.8px;">—</p>
+      </div>
+
+      <span class="eyebrow" style="display:block; margin:16px 0 8px;">Jurnal Catatan Pribadi</span>
+      <div class="journal-box">
+        <textarea id="kd-note" placeholder="Tulis catatan: hasil uji coba, revisi takaran, kesan aroma dari waktu ke waktu..."></textarea>
+      </div>
+      <button class="btn-ghost" style="margin-top:10px;" onclick="saveJournalNote()">Simpan Catatan</button>
+
+      <div class="result-panel">
+        <span class="eyebrow">Kalkulator Takaran</span>
+        <div class="chip-row" id="kd-bottle-chips" style="margin:10px -20px 4px;padding:0 20px 4px;"></div>
+        <div class="chip-row" id="kd-conc-chips" style="margin:0 -20px 12px;padding:0 20px 4px;"></div>
+        <div id="kd-dosage"></div>
+      </div>
+
+      <button class="btn-primary" onclick="shareKoleksiItem()">Bagikan Formula</button>
+      <button class="btn-ghost" onclick="deleteKoleksiItem()" style="color:#A02E44; border-color:#A02E44;">Hapus dari Koleksi</button>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast">Tersimpan ke Koleksi</div>
+
+  <div class="tabbar hidden" id="tabbar">
+    <div class="item active" data-tab="home" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg><span>Home</span>
+    </div>
+    <div class="item" data-tab="library" onclick="go('library')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 4h11l5 5v11H4z"/><path d="M14 4v6h6"/></svg><span>Referensi</span>
+    </div>
+    <div class="item" data-tab="advisor" onclick="go('advisor')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg><span>Advisor</span>
+    </div>
+    <div class="item" data-tab="builder" onclick="go('builder')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 3h6M10 3v5.2L5.5 17a2 2 0 0 0 1.8 3h9.4a2 2 0 0 0 1.8-3L14 8.2V3"/></svg><span>Builder</span>
+    </div>
+    <div class="item" data-tab="koleksi" onclick="go('koleksi')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>Koleksi</span>
+    </div>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script>
+const AUTH_SCREENS = ['onboard'];
+
+function go(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`.screen[data-screen="${screen}"]`).classList.add('active');
+
+  const tabbar = document.getElementById('tabbar');
+  if(AUTH_SCREENS.includes(screen)){
+    tabbar.classList.add('hidden');
+  } else {
+    tabbar.classList.remove('hidden');
+    document.querySelectorAll('.tabbar .item').forEach(i=>i.classList.remove('active'));
+    const tab = document.querySelector(`.tabbar .item[data-tab="${screen}"]`);
+    if(tab) tab.classList.add('active');
+  }
+}
+
+const ONBOARD_SLIDES = [
+  {
+    title:'Referensi Racikan Tanpa Batas',
+    desc:'Jelajahi struktur note dari gaya parfum populer, atau cari kombinasi yang paling sesuai seleramu.',
+    svg:`<svg viewBox="0 0 100 100" fill="none" stroke="#7A2E42" stroke-width="1.6"><path d="M40 10h20M41 10v16L26 42v40a4 4 0 0 0 4 4h40a4 4 0 0 0 4-4V42L59 26V10"/><path d="M26 55h48" stroke="#CC9B5E"/></svg>`
+  },
+  {
+    title:'Racik Sendiri, Lapis demi Lapis',
+    desc:'Pilih lebih dari satu note di tiap lapisan piramida — Top, Middle, Base — lengkap dengan skor harmoni & takaran ml.',
+    svg:`<svg viewBox="0 0 100 100" fill="none" stroke="#7A2E42" stroke-width="1.6"><path d="M50 12 66 40H34Z"/><path d="M26 62h48" /><path d="M20 84h60" stroke="#CC9B5E"/></svg>`
+  },
+  {
+    title:'Privasi Terjaga, 100% Milikmu',
+    desc:'Semua racikan tersimpan lokal di perangkatmu. Fitur AI memakai API key milikmu sendiri — tanpa server pusat.',
+    svg:`<svg viewBox="0 0 100 100" fill="none" stroke="#7A2E42" stroke-width="1.6"><rect x="26" y="46" width="48" height="36" rx="6"/><path d="M34 46V32a16 16 0 0 1 32 0v14" stroke="#CC9B5E"/></svg>`
+  }
+];
+let obStep = 0;
+function renderOnboard(){
+  const s = ONBOARD_SLIDES[obStep];
+  document.getElementById('onboard-body').innerHTML = `
+    <div class="onboard-slide">
+      <div class="ob-hero">${s.svg}</div>
+      <h1>${s.title}</h1>
+      <p>${s.desc}</p>
+    </div>`;
+  document.getElementById('onboard-dots').innerHTML = ONBOARD_SLIDES.map((_,i)=>`<i class="${i===obStep?'active':''}"></i>`).join('');
+  document.getElementById('onboard-next-btn').textContent = obStep === ONBOARD_SLIDES.length-1 ? 'Mulai' : 'Lanjut';
+}
+function nextOnboard(){
+  if(obStep < ONBOARD_SLIDES.length-1){ obStep++; renderOnboard(); }
+  else { go('home'); }
+}
+function skipOnboard(){ go('home'); }
+
+/* ---------- PROFIL & AVATAR ---------- */
+const ICONS = {
+  flower: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2c2 3 2 5 0 7-2-2-2-4 0-7ZM12 22c2-3 2-5 0-7-2 2-2 4 0 7ZM2 12c3-2 5-2 7 0-2 2-4 2-7 0ZM22 12c-3 2-5 2-7 0 2-2 4-2 7 0Z"/></svg>',
+  leaf: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 20c8 0 14-6 14-16-9 0-14 7-14 16Z"/></svg>',
+  drop: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 2s7 8 7 13a7 7 0 0 1-14 0c0-5 7-13 7-13Z"/></svg>',
+  star: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 3l2.4 5.8L20 11l-5.6 2.2L12 19l-2.4-5.8L4 11l5.6-2.2Z"/></svg>',
+  moon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z"/></svg>',
+  heart: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 20s-8-4.8-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6.2-8 11-8 11Z"/></svg>'
+};
+const AVATARS = [
+  { bg:'linear-gradient(145deg,#EAA6AE,#C4677A)', icon:'flower' },
+  { bg:'linear-gradient(145deg,#E8C48F,#CC9B5E)', icon:'leaf' },
+  { bg:'linear-gradient(145deg,#C4677A,#B23A55)', icon:'drop' },
+  { bg:'linear-gradient(145deg,#94A67F,#6f8259)', icon:'star' },
+  { bg:'linear-gradient(145deg,#B23A55,#7A2E42)', icon:'moon' },
+  { bg:'linear-gradient(145deg,#FADEE1,#EAA6AE)', icon:'heart' }
+];
+const profile = { name:'Rani', avatarIndex:0 };
+
+function renderAvatars(){
+  document.querySelectorAll('.avatar-instance').forEach(el=>{
+    el.style.background = AVATARS[profile.avatarIndex].bg;
+    el.style.display = 'flex'; el.style.alignItems='center'; el.style.justifyContent='center';
+    el.innerHTML = ICONS[AVATARS[profile.avatarIndex].icon];
+  });
+  document.querySelectorAll('.name-instance').forEach(el=>{ el.textContent = profile.name; });
+}
+
+function renderAvatarGrid(){
+  const grid = document.getElementById('avatar-grid');
+  grid.innerHTML = AVATARS.map((a,i)=>`<div class="avatar-opt ${i===profile.avatarIndex?'selected':''}" style="background:${a.bg}" onclick="selectAvatar(${i})">${ICONS[a.icon]}</div>`).join('');
+}
+
+function selectAvatar(i){ profile.avatarIndex = i; renderAvatarGrid(); renderAvatars(); }
+
+function saveProfile(){
+  profile.name = document.getElementById('akun-name').value || profile.name;
+  renderAvatars();
+  dbSetSetting('profile', { name: profile.name, avatarIndex: profile.avatarIndex }).catch(()=>{});
+  go('home');
+  showToast('Profil diperbarui');
+}
+
+/* ---------- DATA ---------- */
+const FORMULAS = {
+  'classic-citrus': { name:'Gaya Citrus Klasik', fam:'Fresh · Unisex', top:'Bergamot, Lemon', mid:'Neroli, Geranium', base:'Musk, Vetiver', locked:false, ref:'Light Blue (Dolce & Gabbana)',
+    desc:'Segar dan bersih sejak semprotan pertama, dengan jantung floral-hijau ringan dan dasar musky yang lembut. Cocok dipakai siang hari, kerja, atau cuaca panas.', dur:'6–8j', proj:'Sedang', season:'Panas' },
+  'warm-amber': { name:'Amber Hangat Malam', fam:'Oriental · Malam', top:'Kayu Manis, Jeruk Mandarin', mid:'Rose, Kemenyan', base:'Amber, Vanilla', locked:false, ref:'Baccarat Rouge 540 (Maison Francis Kurkdjian)',
+    desc:'Hangat, manis, dan memikat — jejak amber-vanilla yang tahan lama, ideal untuk acara malam atau musim dingin.', dur:'10–12j', proj:'Kuat', season:'Dingin' },
+  'soft-floral': { name:'Floral Lembut Kerja', fam:'Floral · Harian', top:'Pir, Bunga Sakura', mid:'Peony, Lily Lembah', base:'Musk Putih, Cedar', locked:false, ref:'Chance Eau Tendre (Chanel)',
+    desc:'Floral ringan dan bersih, tidak menyengat, cocok untuk lingkungan tertutup seperti kantor.', dur:'4–6j', proj:'Lembut', season:'Semua Musim' },
+  'woody-no-sweet': { name:'Kayu Tanpa Manis', fam:'Woody · Niche', top:'Grapefruit, Lada Hitam', mid:'Jati, Iris', base:'Vetiver, Patchouli Kering', locked:false, ref:'Bleu de Chanel (Chanel)',
+    desc:'Kering, earthy, dan maskulin tanpa jejak manis — untuk yang secara spesifik menghindari nuansa gourmand.', dur:'8–10j', proj:'Sedang-Kuat', season:'Sejuk' },
+
+  'wangian-1': { name:'Wangian 1 — Bold Dinner Musky', fam:'Oriental Musky · Unisex', top:'Rose', mid:'Saffron', base:'Musk, Patchouli, Honey', locked:false,
+    desc:'Bold dengan hint pertama fresh yang manis, lalu di akhir terasa musk dan patchouli yang hangat dengan aksen manis lembut dari honey. Cocok dipakai di dalam ruangan ber-AC dan acara dinner. Bisa dipakai pria maupun wanita.',
+    dur:'8–10j', proj:'Kuat', season:'Sejuk',
+    dosage:{ top:[{n:'Rose',ml:2}], mid:[{n:'Saffron',ml:2}], base:[{n:'Musk',ml:2},{n:'Patchouli',ml:2},{n:'Honey',ml:2}], totalOil:10 } },
+
+  'wangian-2': { name:'Wangian 2 — Arabian Sweet Musk', fam:'Arabian Musky · Feminin', top:'Cucumber, Bergamot', mid:'Orange Blossom', base:'Tonka Bean, Musk Tahara', locked:false,
+    desc:'Di awal terasa segar dari timun, lalu tercium tipis jeruk manis-asam yang menenangkan, dilanjutkan wangi clean and fresh dari musk tahara, dan berakhir bold arabian sweet dari tonka bean bercampur musk tahara yang menyisakan wangi manis segar. Cocok untuk wanita yang menyukai wewangian arabian tipis namun berkesan mewah.',
+    dur:'6–8j', proj:'Sedang', season:'Semua Musim',
+    dosage:{ top:[{n:'Cucumber',ml:1},{n:'Bergamot',ml:1}], mid:[{n:'Orange Blossom',ml:1}], base:[{n:'Tonka Bean',ml:2},{n:'Musk Tahara',ml:3}], totalOil:8 } },
+
+  'wangian-3': { name:'Wangian 3 — Fresh After Shower', fam:'Fresh Aromatic · Anak & Remaja', top:'Orange, Ocean Fresh', mid:'Cherry Blossom, White Tea, Lavender', base:'Woody, Oud', locked:false,
+    desc:'Memberi kesan seperti orang yang habis mandi. Hindari pemakaian di siang hari terik atau di lapangan dengan paparan sinar matahari langsung — gunakan di pagi dan sore hari. Cocok juga untuk anak usia hingga 12 tahun yang suka beraktivitas dalam ruangan.',
+    dur:'3–5j', proj:'Lembut', season:'Panas',
+    dosage:{ top:[{n:'Orange',ml:1},{n:'Ocean Fresh',ml:1.5}], mid:[{n:'Cherry Blossom',ml:1},{n:'White Tea',ml:2},{n:'Lavender',ml:2}], base:[{n:'Woody',ml:1.5},{n:'Oud',ml:1}], totalOil:10 } },
+
+  'wangian-4': { name:'Wangian 4 — Ocean Bloom Leather', fam:'Marine Floral Leather · Maskulin', top:'Fruitmarine, Ocean', mid:'White Rose, Ylang-Ylang', base:'Leather, Saffron, Sandalwood', locked:false,
+    desc:'Bersih dan light di awal, lalu hentakan berbagai bunga basah yang diterpa ombak laut muncul di pertengahan dengan kesan yang sulit hilang. Di akhir tercium bau kulit manis seperti wangi kayu bakar basah terkena air hujan — maskulin, hangat, dan lembut. Cocok dipakai di luar ruangan atau aktivitas luas.',
+    dur:'7–9j', proj:'Kuat', season:'Sejuk',
+    dosage:{ top:[{n:'Fruitmarine',ml:2},{n:'Ocean',ml:2}], mid:[{n:'White Rose',ml:2},{n:'Ylang-Ylang',ml:1.5}], base:[{n:'Leather Accord',ml:1.5},{n:'Saffron',ml:2.5},{n:'Sandalwood',ml:1.5}], totalOil:13 } },
+
+  'wangian-5': { name:'Wangian 5 — Sweet Teen Bloom', fam:'Gourmand Floral · Remaja', top:'Lily of the Valley', mid:'Jasmine, Cinnamon', base:'Caramel, Ambergris, Honey', locked:false,
+    desc:'Cocok digunakan para remaja yang sedang puber — kesan segar dan ceria yang mencerminkan seseorang yang lembut namun energic. Cocok dipakai untuk aktivitas luas maupun dalam ruangan.',
+    dur:'5–7j', proj:'Sedang', season:'Semua Musim',
+    dosage:{ top:[{n:'Lily of the Valley',ml:1.5}], mid:[{n:'Jasmine',ml:2},{n:'Cinnamon',ml:2}], base:[{n:'Caramel',ml:1.5},{n:'Ambergris',ml:2},{n:'Honey',ml:1}], totalOil:10 } },
+
+  'wangian-6': { name:'Wangian 6 — Breezy Energic', fam:'Fresh Woody · Energic', top:'Bergamot, Fruitmarine, Floral Fresh', mid:'Powdery', base:'Musk, Woody, Amber', locked:false,
+    desc:'Energic dan bold, cocok dipakai di luar ruangan dengan embusan angin yang banyak — misalnya di pantai pada sore hari atau di taman dengan banyak pepohonan rindang.',
+    dur:'6–8j', proj:'Kuat', season:'Panas',
+    dosage:{ top:[{n:'Bergamot',ml:1},{n:'Fruitmarine',ml:2},{n:'Floral Fresh',ml:1}], mid:[{n:'Powdery',ml:1.5}], base:[{n:'Musk',ml:2},{n:'Woody',ml:1.5},{n:'Amber',ml:1}], totalOil:10 } },
+
+  'wangian-7': { name:'Wangian 7 — Cafe Hopper Oud', fam:'Oriental Leather · Maskulin', top:'Lavender, Spicy', mid:'Saffron', base:'Oud, Leather, Tobacco, Woody', locked:false,
+    desc:'Cocok untuk pria dengan mobilitas tinggi — dari cafe ke cafe, meeting ke meeting, atau yang full WFC (work from cafe) sambil mengejar deadline. Kesan maskulinnya terasa kencang dan memunculkan karakteristik si pemakainya.',
+    dur:'9–11j', proj:'Kuat', season:'Sejuk',
+    dosage:{ top:[{n:'Lavender',ml:1.5},{n:'Spicy',ml:1}], mid:[{n:'Saffron',ml:2}], base:[{n:'Oud',ml:2},{n:'Leather Accord',ml:1.5},{n:'Tobacco',ml:1},{n:'Woody',ml:1}], totalOil:10 } }
+};
+
+const DUPE_DB = [
+  { brand:'Dior', name:'Sauvage', fam:'Fresh Spicy · Maskulin', cat:'Fresh/Citrus', top:['Bergamot','Pink Pepper'], mid:['Lavender','Nutmeg'], base:['Ambroxan','Cedarwood'] },
+  { brand:'Chanel', name:'Bleu de Chanel', fam:'Woody Aromatic · Unisex', cat:'Woody', top:['Lemon','Mint','Pink Pepper','Grapefruit'], mid:['Ginger','Nutmeg','Jasmine'], base:['Labdanum','Sandalwood','Patchouli','Vetiver'] },
+  { brand:'Yves Saint Laurent', name:'Black Opium', fam:'Gourmand Floral · Feminin', cat:'Gourmand', top:['Pink Pepper','Orange Flower'], mid:['Coffee Accord','Jasmine'], base:['Vanilla','Patchouli','Cedarwood'] },
+  { brand:'Maison Francis Kurkdjian', name:'Baccarat Rouge 540', fam:'Amber Floral · Unisex', cat:'Oriental/Amber', top:['Saffron'], mid:['Jasmine'], base:['Ambroxan','Cedarwood'] },
+  { brand:'Chanel', name:'Coco Mademoiselle', fam:'Floral Woody · Feminin', cat:'Floral', top:['Sweet Orange','Bergamot'], mid:['Rose','Jasmine'], base:['Patchouli','White Musk'] },
+  { brand:'Tom Ford', name:'Tobacco Vanille', fam:'Oriental Spicy · Unisex', cat:'Oriental/Amber', top:['Cardamom'], mid:['Cinnamon'], base:['Tobacco','Vanilla','Tonka Bean'] },
+  { brand:'Tom Ford', name:'Black Orchid', fam:'Oriental Floral · Unisex', cat:'Oriental/Amber', top:['Blackcurrant','Bergamot','Mandarin'], mid:['Ylang-Ylang','Jasmine'], base:['Patchouli','Vanilla','Sandalwood'] },
+  { brand:'Giorgio Armani', name:'Acqua di Giò Profumo', fam:'Aquatic Aromatic · Maskulin', cat:'Aquatic', top:['Ocean Fresh','Bergamot'], mid:['Rosemary','Geranium'], base:['Frankincense','Patchouli'] },
+  { brand:'Rabanne', name:'1 Million', fam:'Woody Spicy · Maskulin', cat:'Woody', top:['Grapefruit','Mint'], mid:['Cinnamon','Rose'], base:['Amber','Leather Accord','Patchouli'] },
+  { brand:'Lancôme', name:'La Vie Est Belle', fam:'Gourmand Floral · Feminin', cat:'Gourmand', top:['Blackcurrant','Pear'], mid:['Iris','Jasmine','Orange Flower'], base:['Tonka Bean','Vanilla','Patchouli'] },
+  { brand:'Carolina Herrera', name:'Good Girl', fam:'Oriental Floral · Feminin', cat:'Oriental/Amber', top:['Bergamot','Almond'], mid:['Jasmine','Tuberose'], base:['Tonka Bean','Cotton Candy'] },
+  { brand:'Viktor & Rolf', name:'Flowerbomb', fam:'Floral Oriental · Feminin', cat:'Floral', top:['Bergamot'], mid:['Jasmine','Rose','Freesia'], base:['Patchouli','Vanilla'] },
+  { brand:'Chanel', name:'No. 5', fam:'Floral Aldehida · Feminin', cat:'Floral', top:['Aldehida','Neroli','Ylang-Ylang'], mid:['Rose','Lily of the Valley','Jasmine'], base:['Sandalwood','Vanilla','Vetiver'] },
+  { brand:'Dior', name:"J'adore", fam:'Floral Fruity · Feminin', cat:'Floral', top:['Bergamot','Pear'], mid:['Jasmine','Orchid','Rose'], base:['White Musk'] },
+  { brand:'Yves Saint Laurent', name:'Libre', fam:'Floral Aromatic · Feminin', cat:'Floral', top:['Lavender','Mandarin'], mid:['Orange Flower','Jasmine'], base:['Vanilla','White Musk'] },
+  { brand:'Versace', name:'Eros', fam:'Fresh Spicy · Maskulin', cat:'Fresh/Citrus', top:['Mint','Green Apple','Lemon'], mid:['Tonka Bean','Geranium'], base:['Vanilla','Vetiver','Cedarwood'] },
+  { brand:'Jean Paul Gaultier', name:'Le Male', fam:'Oriental Aromatic · Maskulin', cat:'Oriental/Amber', top:['Mint','Lavender','Bergamot'], mid:['Cinnamon'], base:['Vanilla','Tonka Bean','Sandalwood'] },
+  { brand:'Guerlain', name:'Mon Guerlain', fam:'Floral Aromatic · Feminin', cat:'Floral', top:['Lavender','Bergamot'], mid:['Jasmine'], base:['Vanilla','Sandalwood','Tonka Bean'] },
+  { brand:'Prada', name:'Candy', fam:'Gourmand · Feminin', cat:'Gourmand', top:['Caramel Accord'], mid:['Benzoin','Iris'], base:['Vanilla','White Musk'] },
+  { brand:'Gucci', name:'Bloom', fam:'White Floral · Feminin', cat:'Floral', top:['Green Notes'], mid:['Tuberose','Jasmine','Iris'], base:['Sandalwood'] },
+  { brand:'Mugler', name:'Alien', fam:'Amber Floral · Feminin (komposisi minimalis)', cat:'Oriental/Amber', top:['Green Notes'], mid:['Jasmine'], base:['Cashmeran','Amber'] },
+  { brand:'Creed', name:'Aventus', fam:'Fruity Chypre · Maskulin', cat:'Woody', top:['Green Apple','Blackcurrant','Bergamot'], mid:['Birch','Jasmine','Rose'], base:['Musk Sintetis','Oakmoss','Vanilla'] },
+  { brand:'Dolce & Gabbana', name:'Light Blue', fam:'Fresh Citrus · Unisex', cat:'Fresh/Citrus', top:['Lemon','Green Apple'], mid:['Jasmine','White Rose'], base:['Cedarwood','White Musk','Amber'] },
+  { brand:'Hermès', name:"Terre d'Hermès", fam:'Woody Mineral · Maskulin', cat:'Woody', top:['Grapefruit','Sweet Orange'], mid:['Black Pepper','Geranium'], base:['Vetiver','Cedarwood','Benzoin'] },
+  { brand:'Giorgio Armani', name:'Si', fam:'Chypre Fruity · Feminin', cat:'Floral', top:['Blackcurrant'], mid:['Freesia','Rose'], base:['Patchouli','Vanilla','White Musk'] }
+];
+const DUPE_CATEGORIES = ['Semua','Fresh/Citrus','Floral','Oriental/Amber','Woody','Gourmand','Aquatic'];
+let activeDupeCat = 'Semua';
+
+const CONCENTRATION = {
+  Parfum: { min:20, max:40, label:'Parfum/Extrait (20–40%)' },
+  EDP:    { min:15, max:20, label:'Eau de Parfum (15–20%)' },
+  EDT:    { min:5,  max:15, label:'Eau de Toilette (5–15%)' },
+  EDC:    { min:2,  max:5,  label:'Eau de Cologne (2–5%)' }
+};
+const LAYER_SPLIT = { top:0.20, mid:0.35, base:0.45 };
+const LAYER_LABEL = { top:'Top', mid:'Middle', base:'Base' };
+
+function buildBottleChips(prefix, bottle, onClickFn){
+  return [10,30,50,100].map(v =>
+    `<div class="chip ${bottle===v?'active':''}" onclick="${onClickFn}(${v})">${v}ml</div>`
+  ).join('');
+}
+function buildConcChips(prefix, conc, onClickFn){
+  return ['EDC','EDT','EDP','Parfum'].map(v =>
+    `<div class="chip ${conc===v?'active':''}" onclick="${onClickFn}('${v}')">${v}</div>`
+  ).join('');
+}
+
+function buildDosageHTML(topArr, midArr, baseArr, bottle, concKey){
+  const c = CONCENTRATION[concKey];
+  const pct = (c.min + c.max) / 2 / 100;
+  const oilTotal = bottle * pct;
+  const layerOil = { top: oilTotal*LAYER_SPLIT.top, mid: oilTotal*LAYER_SPLIT.mid, base: oilTotal*LAYER_SPLIT.base };
+  let html = '';
+  [['top',topArr], ['mid',midArr], ['base',baseArr]].forEach(([key, arr]) => {
+    if(!arr || arr.length === 0) return;
+    const per = layerOil[key] / arr.length;
+    html += `<div class="dosage-row"><span class="dl">${LAYER_LABEL[key]}</span><div class="dose-pills">` +
+      arr.map(n => `<span class="dose-pill">${n} · ${per.toFixed(1)} ml</span>`).join('') + `</div></div>`;
+  });
+  const carrier = bottle - oilTotal;
+  html += `<div class="dosage-row"><span class="dl">Pelarut</span><div class="dose-pills"><span class="dose-pill">Alkohol/DPG · ${carrier.toFixed(1)} ml</span></div></div>`;
+  html += `<p class="muted" style="font-size:10.3px; margin-top:8px;">Total konsentrat ${oilTotal.toFixed(1)} ml dari botol ${bottle} ml (${c.label}). Ini takaran awal — sebaiknya uji coba skala kecil dulu sebelum membuat batch lebih besar.</p>`;
+  return html;
+}
+
+function suggestFamousRef(allFamilies){
+  const has = f => allFamilies.includes(f);
+  if(has('Amber') && has('Gourmand')) return 'Baccarat Rouge 540 (Maison Francis Kurkdjian)';
+  if(has('Spicy') && has('Amber') && has('Woody')) return 'Sauvage (Dior)';
+  if(has('Woody') && has('Citrus') && (has('Aromatik')||has('Spicy'))) return 'Bleu de Chanel (Chanel)';
+  if(has('Gourmand') && has('Floral')) return 'Black Opium (Yves Saint Laurent)';
+  if(has('Floral') && has('Woody')) return 'Coco Mademoiselle (Chanel)';
+  if(has('Tobacco')) return 'Tobacco Vanille (Tom Ford)';
+  if(has('Citrus') && has('Musk')) return 'Light Blue (Dolce & Gabbana)';
+  if(has('Floral') && has('Powdery')) return 'Chance Eau Tendre (Chanel)';
+  return null;
+}
+
+const EXPANSION_PACKS = [
+  { id:'pack_oud_amber', name:'Oud & Amber Luxury', price:'Rp 25.000', desc:'6 formula oriental-amber, termasuk "Amber Hangat Malam".', unlocked:true },
+  { id:'pack_woody_niche', name:'Woody Niche Collection', price:'Rp 25.000', desc:'5 formula woody/earthy niche, termasuk "Kayu Tanpa Manis".', unlocked:true },
+  { id:'pack_gourmand', name:'Gourmand Dessert Series', price:'Rp 20.000', desc:'Formula manis bergaya dessert — vanila, karamel, kopi.', unlocked:true },
+  { id:'pack_dupe', name:'Dupe Parfum Ternama', price:'Rp 35.000', desc:'Referensi struktur aroma dari parfum populer di pasaran.', unlocked:true }
+];
+
+let apiKeyState = { provider:'Gemini', value:'' };
+
+function setProvider(p){
+  apiKeyState.provider = p;
+  document.getElementById('provider-gemini').classList.toggle('active', p==='Gemini');
+  document.getElementById('provider-openai').classList.toggle('active', p==='OpenAI');
+}
+
+function toggleKeyVisibility(){
+  const input = document.getElementById('apikey-input');
+  const label = document.getElementById('toggle-key-label');
+  const isPass = input.type === 'password';
+  input.type = isPass ? 'text' : 'password';
+  label.textContent = isPass ? 'Sembunyikan' : 'Lihat';
+}
+
+function saveApiKey(){
+  const val = document.getElementById('apikey-input').value;
+  if(!val){ showToast('Isi API key dulu'); return; }
+  apiKeyState.value = val;
+  document.getElementById('apikey-status').textContent = `${apiKeyState.provider} tersambung`;
+  dbSetSetting('apikey', { provider: apiKeyState.provider, value: apiKeyState.value }).catch(()=>{});
+  showToast('API key tersimpan aman di perangkat ini');
+  go('akun');
+}
+
+function renderPackList(){
+  const wrap = document.getElementById('pack-list');
+  if(!wrap) return;
+  wrap.innerHTML = EXPANSION_PACKS.map(p=>`
+    <div class="pack-card">
+      <div class="top-row">
+        <span class="pname">${p.name}</span>
+        <span class="pack-status ${p.unlocked?'unlocked':'locked'}">${p.unlocked?'Terbuka':'Terkunci'}</span>
+      </div>
+      <div class="pdesc">${p.desc}</div>
+      ${p.unlocked
+        ? `<button class="btn-ghost" style="margin-top:0;" onclick="showToast('Paket sudah terbuka')">Lihat Formula</button>`
+        : `<button class="btn-primary" style="margin-top:0;" onclick="openUnlock('${p.id}')">Beli — ${p.price}</button>`}
+    </div>`).join('');
+  updateExpansionStatus();
+}
+
+function updateExpansionStatus(){
+  const unlockedCount = EXPANSION_PACKS.filter(p=>p.unlocked).length;
+  const el = document.getElementById('expansion-status');
+  if(el) el.textContent = `${unlockedCount} dari ${EXPANSION_PACKS.length} paket terbuka`;
+}
+
+let currentUnlockPack = null;
+function openUnlock(packId){
+  currentUnlockPack = EXPANSION_PACKS.find(p=>p.id===packId);
+  document.getElementById('unlock-title').textContent = currentUnlockPack.name;
+  document.getElementById('unlock-price').textContent = currentUnlockPack.price;
+  document.getElementById('pin-input').value = '';
+  go('unlock');
+}
+
+function confirmWhatsApp(){
+  showToast('Membuka WhatsApp untuk konfirmasi pembayaran...');
+  try{
+    window.open('https://wa.me/6281234567890?text=' + encodeURIComponent(`Halo, saya sudah transfer untuk paket "${currentUnlockPack ? currentUnlockPack.name : ''}". Mohon kirimkan kode PIN unlock.`), '_blank');
+  }catch(e){}
+}
+
+function activatePin(){
+  const pin = document.getElementById('pin-input').value;
+  if(pin.length !== 8){ showToast('Kode PIN harus 8 digit'); return; }
+  if(pin !== '12345678'){ showToast('Kode PIN salah'); return; }
+  if(currentUnlockPack){
+    currentUnlockPack.unlocked = true;
+    FORMULAS['warm-amber'] && currentUnlockPack.id==='pack_oud_amber' && (FORMULAS['warm-amber'].locked=false);
+    FORMULAS['woody-no-sweet'] && currentUnlockPack.id==='pack_woody_niche' && (FORMULAS['woody-no-sweet'].locked=false);
+  }
+  showToast('Paket berhasil dibuka!');
+  renderPackList();
+  go('expansion');
+}
+
+function handleFormulaClick(id){
+  const f = FORMULAS[id];
+  if(f.locked){
+    showToast('Formula ini ada di dalam Expansion Pack');
+    go('expansion');
+    return;
+  }
+  openDetail(id);
+}
+
+const NOTES = {
+  top: [
+    {n:'Bergamot', f:'Citrus'}, {n:'Lemon', f:'Citrus'}, {n:'Sweet Orange', f:'Citrus'}, {n:'Grapefruit', f:'Citrus'},
+    {n:'Mandarin', f:'Citrus'}, {n:'Lime', f:'Citrus'}, {n:'Petitgrain', f:'Citrus'}, {n:'Neroli', f:'Citrus'},
+    {n:'Green Apple', f:'Fruity'}, {n:'Pear', f:'Fruity'}, {n:'Peach', f:'Fruity'}, {n:'Raspberry', f:'Fruity'},
+    {n:'Wild Strawberry', f:'Fruity'}, {n:'Blackcurrant', f:'Fruity'}, {n:'Apple', f:'Fruity'}, {n:'Cherry', f:'Fruity'}, {n:'Coconut', f:'Fruity'},
+    {n:'Green Tea', f:'Aromatik'}, {n:'White Tea', f:'Aromatik'}, {n:'Mint', f:'Aromatik'},
+    {n:'Basil', f:'Green'}, {n:'Galbanum', f:'Green'},
+    {n:'Pink Pepper', f:'Spicy'}, {n:'Ginger', f:'Spicy'}, {n:'Cardamom', f:'Spicy'},
+    {n:'Aldehida', f:'Abstrak'}
+  ],
+  mid: [
+    {n:'Rose', f:'Floral'}, {n:'Jasmine', f:'Floral'}, {n:'Ylang-Ylang', f:'Floral'}, {n:'Geranium', f:'Floral'},
+    {n:'Iris', f:'Powdery'}, {n:'Tuberose', f:'Floral'}, {n:'Lily of the Valley', f:'Floral'}, {n:'Violet', f:'Floral'},
+    {n:'Peony', f:'Floral'}, {n:'Freesia', f:'Floral'}, {n:'Magnolia', f:'Floral'}, {n:'Orchid', f:'Floral'},
+    {n:'Gardenia', f:'Floral'}, {n:'White Rose', f:'Floral'}, {n:'Cherry Blossom', f:'Floral'}, {n:'Mimosa', f:'Floral'},
+    {n:'Lavender', f:'Aromatik'}, {n:'Champaca', f:'Floral'}, {n:'Chamomile', f:'Floral'}, {n:'Sweet Pea', f:'Floral'},
+    {n:'Lotus', f:'Floral'}, {n:'Elderflower', f:'Floral'}, {n:'Orange Flower', f:'Floral'},
+    {n:'Cinnamon', f:'Spicy'}, {n:'Clove', f:'Spicy'}, {n:'Nutmeg', f:'Spicy'}, {n:'Coriander', f:'Spicy'}, {n:'Black Pepper', f:'Spicy'},
+    {n:'Apricot Accord', f:'Fruity'}, {n:'Cassis', f:'Fruity'},
+    {n:'Coffee Accord', f:'Gourmand'},
+    {n:'Heliotrope', f:'Powdery'},
+    {n:'Tea Accord', f:'Aromatik'}, {n:'Rosemary', f:'Aromatik'}
+  ],
+  base: [
+    {n:'Sandalwood', f:'Woody'}, {n:'Cedarwood', f:'Woody'}, {n:'Vetiver', f:'Woody'}, {n:'Patchouli', f:'Woody'},
+    {n:'Oud (Gaharu)', f:'Woody'}, {n:'Guaiac Wood', f:'Woody'}, {n:'Agarwood', f:'Woody'}, {n:'Oakwood', f:'Woody'}, {n:'Cashmeran', f:'Woody'},
+    {n:'Amber', f:'Amber'}, {n:'Ambroxan', f:'Amber'}, {n:'Labdanum', f:'Amber'},
+    {n:'Benzoin', f:'Resin'}, {n:'Myrrh', f:'Resin'}, {n:'Frankincense', f:'Resin'}, {n:'Balsam Fir', f:'Resin'}, {n:'Siam Benzoin', f:'Resin'},
+    {n:'Musk Sintetis', f:'Musk'}, {n:'White Musk', f:'Musk'}, {n:'Animalic Musk', f:'Musk'},
+    {n:'Vanilla', f:'Gourmand'}, {n:'Tonka Bean', f:'Gourmand'}, {n:'Honey', f:'Gourmand'}, {n:'Bakery Accord', f:'Gourmand'}, {n:'Cotton Candy', f:'Gourmand'},
+    {n:'Oakmoss', f:'Mossy'}, {n:'Cypress', f:'Mossy'}, {n:'Birch', f:'Mossy'},
+    {n:'Leather Accord', f:'Leather'},
+    {n:'Tobacco', f:'Tobacco'}, {n:'Dark Tobacco', f:'Tobacco'},
+    {n:'Saffron', f:'Spicy'}, {n:'Bay Leaf', f:'Spicy'},
+    {n:'Ocean Fresh', f:'Ozonic'}, {n:'Ozonic Accord', f:'Ozonic'}, {n:'White Linen', f:'Ozonic'}
+  ]
+};
+
+const FAMILY_INFO = {
+  Citrus:    { desc:'segar dan cerah',        scenario:'aktivitas pagi hari, kerja, atau setelah olahraga' },
+  Fruity:    { desc:'ceria dan manis buah',    scenario:'hangout santai atau acara siang hari' },
+  Green:     { desc:'hijau dan alami',         scenario:'suasana outdoor atau kerja santai' },
+  Aromatik:  { desc:'herbal dan bersih',       scenario:'penggunaan harian yang ringan' },
+  Spicy:     { desc:'hangat dan berani',       scenario:'malam hari atau cuaca sejuk' },
+  Abstrak:   { desc:'bersih dan modern',       scenario:'gaya formal atau kantor' },
+  Floral:    { desc:'lembut dan feminin',      scenario:'kerja, acara harian, atau pertemuan sosial' },
+  Powdery:   { desc:'lembut berbedak',         scenario:'suasana elegan dan tenang' },
+  Gourmand:  { desc:'manis menggoda',          scenario:'santai, kencan kasual, atau cuaca dingin' },
+  Woody:     { desc:'hangat berkayu',          scenario:'acara formal, kerja, atau musim sejuk' },
+  Amber:     { desc:'hangat dan mineral',      scenario:'malam hari atau acara formal seperti dinner' },
+  Resin:     { desc:'balsamic yang dalam',     scenario:'suasana malam yang hangat dan intim' },
+  Musk:      { desc:'lembut menempel di kulit',scenario:'penggunaan harian yang dekat kulit (skin scent)' },
+  Mossy:     { desc:'earthy dan lembap',       scenario:'gaya klasik, cocok untuk kerja formal' },
+  Leather:   { desc:'tajam berkesan kulit',    scenario:'gaya berani, cocok dipakai malam hari' },
+  Tobacco:   { desc:'hangat sedikit manis',    scenario:'malam hari atau cuaca dingin' },
+  Ozonic:    { desc:'segar seperti udara laut',scenario:'cuaca panas atau setelah olahraga' }
+};
+
+const HARMONY_GROUP = {
+  Citrus:1, Green:1, Aromatik:1, Ozonic:1,
+  Fruity:2, Spicy:2, Powdery:2, Abstrak:2, Floral:2,
+  Woody:3, Amber:3, Resin:3, Musk:3, Mossy:3, Leather:3, Tobacco:3, Gourmand:3
+};
+
+const koleksi = [];
+let currentLayer = 'top';
+const selected = { top:[], mid:[], base:[] };
+const activeFamilyFilter = { top:'Semua', mid:'Semua', base:'Semua' };
+const builderCalc = { bottle:30, conc:'EDP' };
+const detailCalc = { bottle:30, conc:'EDP' };
+const dupeCalc = { bottle:30, conc:'EDP' };
+let currentDetailId = null;
+let currentDupe = null;
+
+function openDetail(id){
+  const f = FORMULAS[id];
+  currentDetailId = id;
+  document.getElementById('detail-name').textContent = f.name;
+  document.getElementById('detail-fam').textContent = f.fam;
+  document.getElementById('d-top').textContent = f.top || 'Tanpa top note khusus';
+  document.getElementById('d-mid').textContent = f.mid || '—';
+  document.getElementById('d-base').textContent = f.base || '—';
+  document.getElementById('d-desc').textContent = f.desc;
+  const refBox = document.getElementById('d-ref');
+  if(f.ref){
+    refBox.style.display = 'flex';
+    document.getElementById('d-ref-name').textContent = f.ref;
+  } else {
+    refBox.style.display = 'none';
+  }
+  document.getElementById('d-dur').textContent = f.dur;
+  document.getElementById('d-proj').textContent = f.proj;
+  document.getElementById('d-season').textContent = f.season;
+  renderDetailCalcChips();
+  computeDetailDosage();
+  go('detail');
+}
+
+function renderDetailCalcChips(){
+  const f = FORMULAS[currentDetailId];
+  document.getElementById('detail-bottle-chips').innerHTML = buildBottleChips('detail', detailCalc.bottle, 'setDetailBottle');
+  const concWrap = document.getElementById('detail-conc-chips');
+  if(f.dosage){
+    concWrap.innerHTML = '<p class="muted" style="font-size:10.5px; margin:0;">Resep asli — takaran menyesuaikan proporsional mengikuti ukuran botol.</p>';
+  } else {
+    concWrap.innerHTML = buildConcChips('detail', detailCalc.conc, 'setDetailConc');
+  }
+}
+function setDetailBottle(v){ detailCalc.bottle = v; renderDetailCalcChips(); computeDetailDosage(); }
+function setDetailConc(v){ detailCalc.conc = v; renderDetailCalcChips(); computeDetailDosage(); }
+
+function computeDetailDosage(){
+  const f = FORMULAS[currentDetailId];
+  if(f.dosage){
+    const scale = detailCalc.bottle / 30;
+    let html = '';
+    [['top','Top'],['mid','Middle'],['base','Base']].forEach(([key,label])=>{
+      const arr = f.dosage[key];
+      if(!arr || arr.length === 0) return;
+      html += `<div class="dosage-row"><span class="dl">${label}</span><div class="dose-pills">` +
+        arr.map(o => `<span class="dose-pill">${o.n} · ${(o.ml*scale).toFixed(1)} ml</span>`).join('') + `</div></div>`;
+    });
+    const totalOil = f.dosage.totalOil * scale;
+    const carrier = detailCalc.bottle - totalOil;
+    const concPct = Math.round((f.dosage.totalOil/30)*100);
+    html += `<div class="dosage-row"><span class="dl">Pelarut</span><div class="dose-pills"><span class="dose-pill">Alkohol/DPG · ${carrier.toFixed(1)} ml</span></div></div>`;
+    html += `<p class="muted" style="font-size:10.3px; margin-top:8px;">Resep asli: ${f.dosage.totalOil} ml konsentrat dalam 30 ml (±${concPct}% — setara Parfum/Extrait). Takaran di atas sudah disesuaikan ke ${detailCalc.bottle} ml.</p>`;
+    document.getElementById('detail-dosage').innerHTML = html;
+  } else {
+    const topArr = f.top.split(',').map(s=>s.trim());
+    const midArr = f.mid.split(',').map(s=>s.trim());
+    const baseArr = f.base.split(',').map(s=>s.trim());
+    document.getElementById('detail-dosage').innerHTML = buildDosageHTML(topArr, midArr, baseArr, detailCalc.bottle, detailCalc.conc);
+  }
+}
+
+function renderBuilderCalcChips(){
+  document.getElementById('builder-bottle-chips').innerHTML = buildBottleChips('builder', builderCalc.bottle, 'setBuilderBottle');
+  document.getElementById('builder-conc-chips').innerHTML = buildConcChips('builder', builderCalc.conc, 'setBuilderConc');
+}
+function setBuilderBottle(v){ builderCalc.bottle = v; renderBuilderCalcChips(); computeBuilderDosage(); }
+function setBuilderConc(v){ builderCalc.conc = v; renderBuilderCalcChips(); computeBuilderDosage(); }
+function computeBuilderDosage(){
+  const box = document.getElementById('dosage-breakdown');
+  const total = selected.top.length + selected.mid.length + selected.base.length;
+  if(total === 0){ box.innerHTML = '<p class="muted" style="font-size:11px;">Pilih note dulu untuk melihat takaran ml.</p>'; return; }
+  box.innerHTML = buildDosageHTML(selected.top, selected.mid, selected.base, builderCalc.bottle, builderCalc.conc);
+}
+
+function renderDupeCatChips(){
+  const row = document.getElementById('dupe-cat-chips');
+  if(!row) return;
+  row.innerHTML = DUPE_CATEGORIES.map(c =>
+    `<div class="chip ${activeDupeCat===c?'active':''}" onclick="setDupeCat('${c}')">${c}</div>`
+  ).join('');
+}
+function setDupeCat(c){
+  activeDupeCat = c;
+  renderDupeCatChips();
+  filterDupeList();
+}
+
+function renderDupeList(filter){
+  const wrap = document.getElementById('dupe-list');
+  const f = (filter || '').toLowerCase();
+  const items = DUPE_DB.filter(d =>
+    (activeDupeCat==='Semua' || d.cat===activeDupeCat) &&
+    (d.brand + ' ' + d.name).toLowerCase().includes(f)
+  );
+  if(items.length === 0){
+    const q = filter || '';
+    wrap.innerHTML = `
+      <p class="muted" style="margin:16px 0 12px;">Belum ada di database lokal kami${q ? ` untuk "${q}"` : ''}. Coba cari lewat AI atau Google:</p>
+      <button class="btn-primary" onclick="askAI('${q.replace(/'/g,"\\'")}')">🤖 Tanya Asisten AI (${apiKeyState.provider})</button>
+      <button class="btn-ghost" onclick="searchGoogle('${q.replace(/'/g,"\\'")}')">🔍 Cari di Google</button>
+    `;
+    return;
+  }
+  wrap.innerHTML = items.map(d => {
+    const idx = DUPE_DB.indexOf(d);
+    return `<div class="formula-card" onclick="selectDupe(${idx})">
+      <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+      <div class="info"><div class="name">${d.name}</div><div class="fam">${d.brand} · ${d.fam}</div></div>
+    </div>`;
+  }).join('');
+}
+function filterDupeList(){ renderDupeList(document.getElementById('dupe-search-input').value); }
+
+function searchGoogle(query){
+  const q = query && query.trim() ? query : 'parfum';
+  showToast('Membuka pencarian Google...');
+  try{ window.open('https://www.google.com/search?q=' + encodeURIComponent(q + ' fragrance notes top middle base'), '_blank'); }catch(e){}
+}
+
+async function askAI(query){
+  if(!apiKeyState.value){
+    showToast('Atur API Key dulu di Pengaturan');
+    go('apikey');
+    return;
+  }
+  const q = query && query.trim() ? query : document.getElementById('dupe-search-input').value;
+  document.getElementById('dupe-list').style.display = 'none';
+  const box = document.getElementById('dupe-result');
+  box.style.display = 'block';
+  box.innerHTML = `<p class="muted" style="margin-top:20px;">🤖 ${apiKeyState.provider} sedang menganalisis "${q}"...</p>`;
+
+  const prompt = `Berikan perkiraan struktur note parfum (top, middle, base notes) untuk parfum "${q}" berdasarkan informasi aroma yang dipublikasikan secara umum di internet. Jawab HANYA dalam format JSON tanpa markdown, contoh: {"brand":"Nama Brand","name":"Nama Parfum","fam":"Kategori Aroma · Gender","top":["note1","note2"],"mid":["note1","note2"],"base":["note1","note2"]}`;
+
+  try{
+    let text;
+    if(apiKeyState.provider === 'Gemini'){
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKeyState.value)}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
+      });
+      const data = await res.json();
+      text = data.candidates[0].content.parts[0].text;
+    } else {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method:'POST',
+        headers:{'Content-Type':'application/json', 'Authorization':'Bearer ' + apiKeyState.value},
+        body: JSON.stringify({ model:'gpt-4o-mini', messages:[{role:'user', content:prompt}] })
+      });
+      const data = await res.json();
+      text = data.choices[0].message.content;
+    }
+    const cleaned = text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(cleaned);
+    currentDupe = { brand:parsed.brand||'Hasil AI', name:parsed.name||q, fam:(parsed.fam||'Perkiraan AI')+' · via '+apiKeyState.provider, top:parsed.top||[], mid:parsed.mid||[], base:parsed.base||[] };
+    renderDupeResult();
+  } catch(e){
+    box.innerHTML = `<p class="muted" style="margin-top:20px;">Gagal memuat hasil dari ${apiKeyState.provider} (${e.message || 'koneksi bermasalah'}). Pastikan API key benar dan koneksi internet aktif, atau coba "Cari di Google" sebagai alternatif.</p>
+      <button class="btn-ghost" onclick="searchGoogle('${q.replace(/'/g,"\\'")}')">🔍 Cari di Google</button>
+      <button class="btn-ghost" onclick="closeDupeResult()">Kembali ke Pencarian</button>`;
+  }
+}
+
+function selectDupe(idx){
+  currentDupe = DUPE_DB[idx];
+  document.getElementById('dupe-list').style.display = 'none';
+  renderDupeResult();
+}
+function closeDupeResult(){
+  currentDupe = null;
+  document.getElementById('dupe-result').style.display = 'none';
+  document.getElementById('dupe-list').style.display = 'block';
+}
+function setDupeBottle(v){ dupeCalc.bottle = v; renderDupeResult(); }
+function setDupeConc(v){ dupeCalc.conc = v; renderDupeResult(); }
+function renderDupeResult(){
+  const d = currentDupe;
+  const box = document.getElementById('dupe-result');
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="back-row" onclick="closeDupeResult()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#4A2B33" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      <span>Kembali ke Pencarian</span>
+    </div>
+    <div class="detail-sub">${d.fam}</div>
+    <div class="detail-title">${d.brand} — ${d.name}</div>
+    <div class="warn-banner">⚠️ Racikan ini adalah pendekatan berdasarkan catatan aroma yang dipublikasikan secara umum, <b>bukan formula rahasia asli</b> dari ${d.brand}. Diperkirakan menyerupai sekitar <b>80–90%</b> dari produk aslinya.</div>
+    <div class="pyramid-full">
+      <div class="pband top"><div class="lab">Top</div><div class="val">${d.top.join(', ')}</div></div>
+      <div class="pband mid"><div class="lab">Middle</div><div class="val">${d.mid.join(', ')}</div></div>
+      <div class="pband base"><div class="lab">Base</div><div class="val">${d.base.join(', ')}</div></div>
+    </div>
+    <span class="eyebrow" style="display:block; margin-top:6px;">Kalkulator Takaran</span>
+    <div class="chip-row" style="margin:10px -20px 4px;padding:0 20px 4px;">${buildBottleChips('dupe', dupeCalc.bottle, 'setDupeBottle')}</div>
+    <div class="chip-row" style="margin:0 -20px 12px;padding:0 20px 4px;">${buildConcChips('dupe', dupeCalc.conc, 'setDupeConc')}</div>
+    <div>${buildDosageHTML(d.top, d.mid, d.base, dupeCalc.bottle, dupeCalc.conc)}</div>
+    <button class="btn-primary" onclick="useDupeInBuilder()">Gunakan sebagai Dasar Racikan</button>
+  `;
+}
+function useDupeInBuilder(){
+  selected.top = [...currentDupe.top];
+  selected.mid = [...currentDupe.mid];
+  selected.base = [...currentDupe.base];
+  showToast('Formula dupe dimuat ke Builder');
+  go('builder');
+  switchLayer('top');
+  updateResult();
+}
+
+function switchLayer(layer){
+  currentLayer = layer;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.layer===layer));
+  renderFamilyChips();
+  renderGrid();
+}
+
+function renderFamilyChips(){
+  const row = document.getElementById('family-chip-row');
+  const families = ['Semua', ...new Set(NOTES[currentLayer].map(o=>o.f))];
+  row.innerHTML = families.map(f=>
+    `<div class="chip ${activeFamilyFilter[currentLayer]===f ? 'active':''}" onclick="setFamilyFilter('${f}')">${f}</div>`
+  ).join('');
+}
+
+function setFamilyFilter(f){
+  activeFamilyFilter[currentLayer] = f;
+  renderFamilyChips();
+  renderGrid();
+}
+
+function renderGrid(){
+  const grid = document.getElementById('note-grid');
+  grid.innerHTML = '';
+  const filter = activeFamilyFilter[currentLayer];
+  const list = filter==='Semua' ? NOTES[currentLayer] : NOTES[currentLayer].filter(o=>o.f===filter);
+  list.forEach(item=>{
+    const isSelected = selected[currentLayer].includes(item.n);
+    const card = document.createElement('div');
+    card.className = 'note-card' + (isSelected ? ' selected' : '');
+    card.innerHTML = `<div class="n">${item.n}</div><div class="f">${item.f}</div>` +
+      (isSelected ? `<div class="note-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg></div>` : '');
+    card.onclick = ()=> toggleNote(item.n);
+    grid.appendChild(card);
+  });
+  updateTabCounts();
+}
+
+function toggleNote(name){
+  const arr = selected[currentLayer];
+  const idx = arr.indexOf(name);
+  if(idx > -1){ arr.splice(idx,1); } else { arr.push(name); }
+  renderGrid();
+  updateResult();
+}
+
+function updateTabCounts(){
+  ['top','mid','base'].forEach(l=>{
+    const el = document.getElementById('count-'+l);
+    el.textContent = selected[l].length > 0 ? `(${selected[l].length})` : '';
+  });
+}
+
+function familyOf(layer, name){
+  const found = NOTES[layer].find(o=>o.n===name);
+  return found ? found.f : null;
+}
+
+function updateResult(){
+  const layerWarn = document.getElementById('layer-warning');
+  const resultWarn = document.getElementById('result-warning');
+  const overLimitLayers = ['top','mid','base'].filter(l=>selected[l].length>4);
+
+  document.getElementById('r-top').textContent = selected.top.length ? selected.top.join(', ') : '—';
+  document.getElementById('r-mid').textContent = selected.mid.length ? selected.mid.join(', ') : '—';
+  document.getElementById('r-base').textContent = selected.base.length ? selected.base.join(', ') : '—';
+
+  const layerLabel = {top:'Top', mid:'Middle', base:'Base'};
+  if(overLimitLayers.includes(currentLayer)){
+    layerWarn.style.display = 'block';
+    layerWarn.innerHTML = `⚠️ Kamu memilih ${selected[currentLayer].length} note di lapisan ${layerLabel[currentLayer]}. Memilih lebih dari 4 note dalam satu lapisan piramida berisiko menghasilkan wewangian yang kurang enak, kurang menonjol karakternya, atau justru terasa serupa satu sama lain. Sebaiknya batasi maksimal 4 note per lapisan agar racikan lebih harmonis.`;
+  } else {
+    layerWarn.style.display = 'none';
+  }
+
+  const totalSelected = selected.top.length + selected.mid.length + selected.base.length;
+
+  if(totalSelected === 0){
+    document.getElementById('score-fill').style.width = '0%';
+    document.getElementById('score-num').textContent = '0%';
+    document.getElementById('r-desc').textContent = 'Pilih note di ketiga lapisan untuk melihat karakter racikanmu.';
+    document.getElementById('r-dur').textContent = '—';
+    document.getElementById('r-proj').textContent = '—';
+    document.getElementById('r-season').textContent = '—';
+    resultWarn.style.display = 'none';
+    document.getElementById('r-ref').style.display = 'none';
+    computeBuilderDosage();
+    return;
+  }
+
+  const allFamilies = [
+    ...selected.top.map(n=>familyOf('top',n)),
+    ...selected.mid.map(n=>familyOf('mid',n)),
+    ...selected.base.map(n=>familyOf('base',n))
+  ];
+  const groups = allFamilies.map(f=>HARMONY_GROUP[f]);
+  const spread = Math.max(...groups) - Math.min(...groups);
+  const excessPenalty = overLimitLayers.reduce((sum,l)=> sum + (selected[l].length-4)*7, 0);
+  const score = Math.max(50, Math.min(97, 96 - spread*7 - excessPenalty));
+
+  document.getElementById('score-fill').style.width = score + '%';
+  document.getElementById('score-num').textContent = score + '%';
+
+  const freq = {};
+  allFamilies.forEach(f=> freq[f] = (freq[f]||0)+1 );
+  const topFamilies = Object.keys(freq).sort((a,b)=>freq[b]-freq[a]).slice(0,2);
+  const descPhrase = topFamilies.map(f=>FAMILY_INFO[f].desc).join(' dipadukan dengan kesan ');
+  const scenarios = [...new Set(topFamilies.map(f=>FAMILY_INFO[f].scenario))];
+  const scenarioPhrase = scenarios.join(', atau ');
+
+  let narrative = `Racikan ini terasa ${descPhrase}. Wewangian seperti ini cocok dipakai untuk ${scenarioPhrase}.`;
+  if(totalSelected > 8){
+    narrative += ' Karena jumlah note yang dipilih cukup banyak, aromanya akan cenderung kompleks — pertimbangkan untuk menyederhanakan pilihan bila menginginkan karakter yang lebih fokus.';
+  }
+  document.getElementById('r-desc').textContent = narrative;
+
+  if(overLimitLayers.length > 0){
+    resultWarn.style.display = 'block';
+    const names = overLimitLayers.map(l=>layerLabel[l]).join(', ');
+    resultWarn.innerHTML = `⚠️ Lapisan ${names} melebihi 4 note. Pemilihan melebihi kapasitas normal berisiko menghasilkan wewangian yang kurang enak, kurang menonjol, atau menghasilkan wangian yang serupa satu sama lain — skor harmoni di atas sudah disesuaikan untuk mencerminkan risiko ini.`;
+  } else {
+    resultWarn.style.display = 'none';
+  }
+
+  document.getElementById('r-dur').textContent = score>85 ? '7–9j' : score>70 ? '5–7j' : '3–5j';
+  document.getElementById('r-proj').textContent = totalSelected>8 ? 'Kuat' : spread>=2 ? 'Kuat' : 'Sedang';
+  const heavyFamilies = ['Amber','Resin','Gourmand','Woody','Tobacco','Musk'];
+  const lightFamilies = ['Citrus','Green','Aromatik','Ozonic'];
+  const heavyCount = allFamilies.filter(f=>heavyFamilies.includes(f)).length;
+  const lightCount = allFamilies.filter(f=>lightFamilies.includes(f)).length;
+  document.getElementById('r-season').textContent = heavyCount>lightCount ? 'Dingin' : lightCount>heavyCount ? 'Panas' : 'Segala Musim';
+
+  const famousRef = suggestFamousRef(allFamilies);
+  const refBox = document.getElementById('r-ref');
+  if(famousRef){
+    refBox.style.display = 'flex';
+    document.getElementById('r-ref-name').textContent = famousRef;
+  } else {
+    refBox.style.display = 'none';
+  }
+
+  computeBuilderDosage();
+}
+
+function familyOfAny(name){
+  for(const layer of ['top','mid','base']){
+    const found = NOTES[layer].find(o=>o.n===name);
+    if(found) return found.f;
+  }
+  return null;
+}
+function computeAgingDays(topArr, midArr, baseArr){
+  const all = [...topArr, ...midArr, ...baseArr];
+  const heavyFamilies = ['Amber','Resin','Gourmand','Woody','Tobacco','Musk','Mossy','Leather'];
+  let heavyCount = 0;
+  all.forEach(n=>{ const f = familyOfAny(n); if(f && heavyFamilies.includes(f)) heavyCount++; });
+  const days = 7 + heavyCount*3 + Math.min(all.length,10);
+  return Math.max(7, Math.min(30, days));
+}
+function agingStatus(item){
+  const elapsedDays = (Date.now() - item.createdAt) / (1000*60*60*24);
+  const pct = Math.max(0, Math.min(100, Math.round((elapsedDays / item.agingDays) * 100)));
+  const remaining = Math.max(0, Math.ceil(item.agingDays - elapsedDays));
+  return { pct, remaining, ready: elapsedDays >= item.agingDays };
+}
+
+function shareFormula(name, fam, topStr, midStr, baseStr){
+  const text = `${name} (${fam})\n\nTop: ${topStr}\nMiddle: ${midStr}\nBase: ${baseStr}\n\nDibuat dengan JK Essensial`;
+  if(navigator.share){
+    navigator.share({ title: name, text }).catch(()=>{});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=> showToast('Formula disalin ke clipboard')).catch(()=> showToast('Gagal menyalin, coba lagi'));
+  } else {
+    showToast('Bagikan tidak didukung di browser ini');
+  }
+}
+
+function saveToKoleksi(source){
+  let item;
+  if(source==='builder'){
+    const total = selected.top.length + selected.mid.length + selected.base.length;
+    if(total === 0){ showToast('Pilih minimal satu note dulu'); return; }
+    item = {
+      name:'Racikan Kustomku', fam:'Buatan Sendiri',
+      top: selected.top.join(', ') || '—',
+      mid: selected.mid.join(', ') || '—',
+      base: selected.base.join(', ') || '—',
+      agingDays: computeAgingDays(selected.top, selected.mid, selected.base)
+    };
+  } else {
+    const f = FORMULAS[Object.keys(FORMULAS).find(k=>FORMULAS[k].name===document.getElementById('detail-name').textContent)];
+    const topArr = f.top.split(',').map(s=>s.trim());
+    const midArr = f.mid.split(',').map(s=>s.trim());
+    const baseArr = f.base.split(',').map(s=>s.trim());
+    item = { name:f.name, fam:f.fam, top:f.top, mid:f.mid, base:f.base, agingDays: computeAgingDays(topArr, midArr, baseArr) };
+  }
+  item.createdAt = Date.now();
+  item.note = '';
+  koleksi.unshift(item);
+  renderKoleksi();
+  dbAddKoleksi(item).then(id => { item.id = id; }).catch(()=>{});
+  showToast('Tersimpan ke Koleksi');
+}
+
+function renderKoleksi(){
+  const wrap = document.getElementById('koleksi-list');
+  if(koleksi.length===0){
+    wrap.innerHTML = `<div class="empty-state">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#C4677A" stroke-width="1.5"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
+      <p>Belum ada racikan tersimpan.<br>Simpan dari Reference Library atau Note Builder.</p>
+    </div>`;
+    return;
+  }
+  wrap.innerHTML = koleksi.map((it,idx)=>{
+    const st = agingStatus(it);
+    return `
+    <div class="koleksi-card" onclick="openKoleksiDetail(${idx})">
+      <div class="pyr-mini"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+      <div style="flex:1;">
+        <div class="name">${it.name}</div>
+        <div class="meta">${it.fam}</div>
+        <div class="aging-row">
+          <div class="aging-track"><div class="aging-fill" style="width:${st.pct}%;"></div></div>
+          <span class="aging-label">${st.ready ? '✓ Siap Dipakai' : 'Siap ' + st.remaining + ' hari lagi'}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let currentKoleksiIdx = null;
+const koleksiCalc = { bottle:30, conc:'EDP' };
+
+function openKoleksiDetail(idx){
+  currentKoleksiIdx = idx;
+  renderKoleksiDetail();
+  go('koleksi-detail');
+}
+
+function renderKoleksiDetail(){
+  const it = koleksi[currentKoleksiIdx];
+  const st = agingStatus(it);
+  document.getElementById('kd-name').textContent = it.name;
+  document.getElementById('kd-fam').textContent = it.fam;
+  document.getElementById('kd-top').textContent = it.top;
+  document.getElementById('kd-mid').textContent = it.mid;
+  document.getElementById('kd-base').textContent = it.base;
+  document.getElementById('kd-aging-label').textContent = st.ready ? '✓ Siap Dipakai' : `${st.remaining} hari lagi`;
+  document.getElementById('kd-aging-fill').style.width = st.pct + '%';
+  const readyDate = new Date(it.createdAt + it.agingDays*86400000);
+  document.getElementById('kd-aging-sub').textContent = `Direkomendasikan diperam ${it.agingDays} hari sejak ${new Date(it.createdAt).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})} — perkiraan siap ${readyDate.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}.`;
+  document.getElementById('kd-note').value = it.note || '';
+
+  const topArr = it.top.split(',').map(s=>s.trim());
+  const midArr = it.mid.split(',').map(s=>s.trim());
+  const baseArr = it.base.split(',').map(s=>s.trim());
+  document.getElementById('kd-bottle-chips').innerHTML = buildBottleChips('kd', koleksiCalc.bottle, 'setKoleksiBottle');
+  document.getElementById('kd-conc-chips').innerHTML = buildConcChips('kd', koleksiCalc.conc, 'setKoleksiConc');
+  document.getElementById('kd-dosage').innerHTML = buildDosageHTML(topArr, midArr, baseArr, koleksiCalc.bottle, koleksiCalc.conc);
+}
+function setKoleksiBottle(v){ koleksiCalc.bottle = v; renderKoleksiDetail(); }
+function setKoleksiConc(v){ koleksiCalc.conc = v; renderKoleksiDetail(); }
+
+function saveJournalNote(){
+  const it = koleksi[currentKoleksiIdx];
+  it.note = document.getElementById('kd-note').value;
+  if(it.id != null){ dbUpdateKoleksi(it).catch(()=>{}); }
+  showToast('Catatan tersimpan');
+}
+
+function deleteKoleksiItem(){
+  const it = koleksi[currentKoleksiIdx];
+  if(it.id != null){ dbDeleteKoleksi(it.id).catch(()=>{}); }
+  koleksi.splice(currentKoleksiIdx, 1);
+  renderKoleksi();
+  go('koleksi');
+  showToast('Racikan dihapus dari koleksi');
+}
+
+function shareKoleksiItem(){
+  const it = koleksi[currentKoleksiIdx];
+  shareFormula(it.name, it.fam, it.top, it.mid, it.base);
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ---------- ADVISOR ---------- */
+const QUESTIONS = [
+  { q:'Racikan ini untuk acara atau momen apa?', opts:['Harian / Kerja','Kondangan / Acara Formal','Kencan / Malam Spesial','Santai / Akhir Pekan'] },
+  { q:'Karakter aroma seperti apa yang kamu suka?', opts:['Segar & Ringan','Manis & Hangat','Kayu & Earthy','Floral & Lembut'] },
+  { q:'Ada aroma yang ingin dihindari?', opts:['Tidak suka manis berlebih','Tidak suka terlalu menyengat','Hindari aroma manis-vanilla','Tidak ada, bebas'] },
+  { q:'Biasa dipakai di cuaca seperti apa?', opts:['Panas / Tropis','Sejuk / Musim Hujan','Fleksibel, segala cuaca'] },
+  { q:'Seberapa kuat proyeksi aroma yang diinginkan?', opts:['Lembut, dekat kulit','Sedang, tercium orang di sekitar','Kuat, tahan lama & jauh tercium'] }
+];
+let advStep = 0;
+const advAnswers = [];
+const ADVISOR_RESULTS = {
+  'Segar & Ringan': [ FORMULAS['classic-citrus'] ],
+  'Manis & Hangat': [ FORMULAS['warm-amber'] ],
+  'Kayu & Earthy': [ FORMULAS['woody-no-sweet'] ],
+  'Floral & Lembut': [ FORMULAS['soft-floral'] ]
+};
+
+function renderAdvisor(){
+  const progress = document.getElementById('adv-progress');
+  progress.innerHTML = QUESTIONS.map((_,i)=>`<i class="${i<advStep ? 'done':''}"></i>`).join('');
+  const body = document.getElementById('adv-body');
+
+  if(advStep < QUESTIONS.length){
+    const step = QUESTIONS[advStep];
+    body.innerHTML = `
+      <div class="q-title">${step.q}</div>
+      <div class="opt-grid">
+        ${step.opts.map(o=>`<div class="opt" onclick="answerAdvisor('${o.replace(/'/g,"\\'")}')">${o}</div>`).join('')}
+      </div>`;
+  } else {
+    const charAnswer = advAnswers[1];
+    const results = ADVISOR_RESULTS[charAnswer] || [FORMULAS['classic-citrus']];
+    body.innerHTML = `
+      <div class="q-title" style="font-size:17px;">Rekomendasi racikan untukmu</div>
+      ${results.map(f=>`
+        <div class="advisor-result-card">
+          <span class="eyebrow">${f.fam}</span>
+          <div class="name">${f.name}</div>
+          <div class="pyr-mini" style="align-items:flex-start; margin:10px 0;"><div class="band top"></div><div class="band mid"></div><div class="band base"></div></div>
+          <div class="why">${f.desc}</div>
+          <button class="btn-ghost" style="margin-top:2px;" onclick="openDetail('${Object.keys(FORMULAS).find(k=>FORMULAS[k]===f)}')">Lihat Struktur Lengkap</button>
+        </div>`).join('')}
+      <button class="btn-primary" onclick="restartAdvisor()">Ulangi Pertanyaan</button>`;
+  }
+}
+function answerAdvisor(ans){ advAnswers[advStep] = ans; advStep++; renderAdvisor(); }
+function restartAdvisor(){ advStep = 0; advAnswers.length = 0; renderAdvisor(); }
+
+/* ---------- INIT (hydrate dari IndexedDB, lalu render) ---------- */
+async function initApp(){
+  try{
+    const savedKoleksi = await dbGetAllKoleksi();
+    if(savedKoleksi && savedKoleksi.length){
+      koleksi.length = 0;
+      koleksi.push(...savedKoleksi.sort((a,b)=> b.createdAt - a.createdAt));
+    }
+    const savedProfile = await dbGetSetting('profile');
+    if(savedProfile){
+      profile.name = savedProfile.name || profile.name;
+      profile.avatarIndex = typeof savedProfile.avatarIndex === 'number' ? savedProfile.avatarIndex : profile.avatarIndex;
+    }
+    const savedApiKey = await dbGetSetting('apikey');
+    if(savedApiKey && savedApiKey.value){
+      apiKeyState.provider = savedApiKey.provider || apiKeyState.provider;
+      apiKeyState.value = savedApiKey.value;
+    }
+  }catch(e){
+    console.warn('IndexedDB belum siap / tidak didukung, memakai data sementara:', e);
+  }
+
+  renderFamilyChips();
+  renderGrid();
+  updateResult();
+  renderKoleksi();
+  renderAdvisor();
+  renderAvatars();
+  renderAvatarGrid();
+  renderPackList();
+  renderBuilderCalcChips();
+  computeBuilderDosage();
+  renderDupeCatChips();
+  renderDupeList('');
+  renderOnboard();
+
+  if(apiKeyState.value){
+    const statusEl = document.getElementById('apikey-status');
+    if(statusEl) statusEl.textContent = `${apiKeyState.provider} tersambung`;
+  }
+}
+initApp();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('Service worker gagal didaftarkan:', err));
+  });
+}
+</script>
+</body>
+</html>
