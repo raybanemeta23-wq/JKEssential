@@ -355,7 +355,7 @@
         </div>
       </div>
       <div class="greet">
-        <span class="eyebrow">Selamat siang, Rani</span>
+        <span class="eyebrow" id="home-greeting">Selamat datang, Rani</span>
         <h1>Mau racik aroma<br>seperti apa hari ini?</h1>
       </div>
 
@@ -874,6 +874,13 @@ function renderAvatars(){
     el.innerHTML = ICONS[AVATARS[profile.avatarIndex].icon];
   });
   document.querySelectorAll('.name-instance').forEach(el=>{ el.textContent = profile.name; });
+
+  const greetEl = document.getElementById('home-greeting');
+  if(greetEl){
+    const hour = new Date().getHours();
+    const timeGreeting = hour < 11 ? 'Selamat pagi' : hour < 15 ? 'Selamat siang' : hour < 19 ? 'Selamat sore' : 'Selamat malam';
+    greetEl.textContent = `${timeGreeting}, ${profile.name}`;
+  }
 }
 
 function renderAvatarGrid(){
