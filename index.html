@@ -1790,7 +1790,12 @@ initApp();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('Service worker gagal didaftarkan:', err));
+    navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' })
+      .then((reg) => {
+        // Paksa cek update setiap kali app dibuka, jangan andalkan cache HTTP sama sekali
+        reg.update().catch(()=>{});
+      })
+      .catch(err => console.warn('Service worker gagal didaftarkan:', err));
   });
 }
 </script>
