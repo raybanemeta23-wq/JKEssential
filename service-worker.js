@@ -4,7 +4,7 @@
   Setelah kunjungan pertama, aplikasi bisa dibuka tanpa koneksi internet.
 */
 
-const CACHE_NAME = 'jk-essensial-v2';
+const CACHE_NAME = 'jk-essensial-v3';
 const APP_SHELL = [
   './',
   './index.html',
